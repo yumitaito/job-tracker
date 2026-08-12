@@ -12,6 +12,7 @@ import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
+import { JOB_STATUSES } from "@/features/jobs/types/job";
 import type { Job, JobSortOption, JobStatusFilter } from "@/features/jobs/types/job";
 
 export default function JobListPage() {
@@ -23,7 +24,8 @@ export default function JobListPage() {
   const deleteJob = useDeleteJob();
 
   const counts = useMemo(() => {
-    const base: Record<JobStatusFilter, number> = { all: 0, not_applied: 0, applied: 0 };
+    const base = { all: 0 } as Record<JobStatusFilter, number>;
+    for (const s of JOB_STATUSES) base[s] = 0;
     if (!jobs) return base;
     base.all = jobs.length;
     for (const job of jobs) {

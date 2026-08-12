@@ -78,6 +78,9 @@ npm install
      [`supabase/migrations/0001_make_application_date_optional.sql`](supabase/migrations/0001_make_application_date_optional.sql) →
      [`supabase/migrations/0002_add_user_auth_and_rls.sql`](supabase/migrations/0002_add_user_auth_and_rls.sql) の順に実行
      （詳細は「複数ユーザー対応（Supabase Auth）について」を参照）。
+   - 既に `supabase/schema.sql`（旧・2段階ステータス版）を実行済みの環境で選考ステータスを8段階に拡張する場合：
+     [`supabase/migrations/0003_expand_job_status_stages.sql`](supabase/migrations/0003_expand_job_status_stages.sql) を実行
+     （詳細は「ステータスの多段階化」を参照）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -164,7 +167,7 @@ create table public.jobs (
   employment_type text,
   application_url text,
   application_date date, -- 任意項目（未入力可）
-  status text not null default 'not_applied', -- 'not_applied' | 'applied'
+  status text not null default 'not_applied', -- 選考ステータス（8段階、下記参照）
   location text,
   technologies text[],
   notes text,
@@ -172,14 +175,44 @@ create table public.jobs (
   max_salary integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint jobs_status_check check (status in ('not_applied', 'applied')),
+  constraint jobs_status_check check (status in (
+    'not_applied',
+    'document_screening',
+    'first_interview',
+    'second_interview',
+    'final_interview',
+    'offer',
+    'rejected',
+    'withdrawn'
+  )),
   constraint jobs_salary_range_check check (
     min_salary is null or max_salary is null or min_salary <= max_salary
   )
 );
 ```
 
+`status` は選考の進行順に以下の8段階を取ります。
+
+| 値 | 表示ラベル |
+| --- | --- |
+| `not_applied` | 未応募 |
+| `document_screening` | 書類選考中 |
+| `first_interview` | 一次面接 |
+| `second_interview` | 二次面接 |
+| `final_interview` | 最終面接 |
+| `offer` | 内定 |
+| `rejected` | 不採用 |
+| `withdrawn` | 辞退 |
+
 `updated_at` は更新のたびにDB側のtriggerで自動更新されます（詳細は `supabase/schema.sql` を参照）。
+
+### ステータスの多段階化（2026年8月〜）
+
+以前は `not_applied` / `applied` の2段階でしたが、選考の進み具合を追えるよう8段階に拡張しました。
+既に `supabase/schema.sql` を実行済みの環境（＝旧2段階のCHECK制約が入っている環境）では、
+`supabase/migrations/0003_expand_job_status_stages.sql` をSupabase SQL Editorで実行してください。
+このmigrationは、旧CHECK制約の削除・既存データの移行（`applied` → `document_screening`）・新CHECK制約の追加を行います。
+新規セットアップの場合は `supabase/schema.sql` に8段階のCHECK制約が反映済みのため、このmigrationの実行は不要です。
 
 ## 複数ユーザー対応（Supabase Auth）について
 
