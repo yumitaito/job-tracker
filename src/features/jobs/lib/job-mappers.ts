@@ -1,3 +1,4 @@
+import { toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
 import type { JobFormValues } from "@/features/jobs/schemas/job-schema";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -9,6 +10,9 @@ export function jobToFormValues(job: Job): JobFormValues {
     application_url: job.application_url ?? "",
     application_date: job.application_date ?? "",
     status: job.status,
+    first_interview_at: toDateTimeLocalInputValue(job.first_interview_at),
+    second_interview_at: toDateTimeLocalInputValue(job.second_interview_at),
+    final_interview_at: toDateTimeLocalInputValue(job.final_interview_at),
     location: job.location ?? "",
     technologies: job.technologies ?? [],
     notes: job.notes ?? "",

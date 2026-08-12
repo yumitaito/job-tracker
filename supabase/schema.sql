@@ -16,6 +16,9 @@ create table if not exists public.jobs (
   application_url text,
   application_date date,
   status text not null default 'not_applied',
+  first_interview_at timestamptz, -- 一次面接日時（任意項目）
+  second_interview_at timestamptz, -- 二次面接日時（任意項目）
+  final_interview_at timestamptz, -- 最終面接日時（任意項目）
   location text,
   technologies text[],
   notes text,

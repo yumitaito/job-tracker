@@ -41,6 +41,9 @@ export type Job = {
   application_url: string | null;
   application_date: string | null;
   status: JobStatus;
+  first_interview_at: string | null;
+  second_interview_at: string | null;
+  final_interview_at: string | null;
   location: string | null;
   technologies: string[] | null;
   notes: string | null;
@@ -58,6 +61,9 @@ export type CreateJobInput = {
   application_url: string | null;
   application_date: string | null;
   status: JobStatus;
+  first_interview_at: string | null;
+  second_interview_at: string | null;
+  final_interview_at: string | null;
   location: string | null;
   technologies: string[] | null;
   notes: string | null;

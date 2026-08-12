@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fromDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
 import { JOB_STATUSES } from "@/features/jobs/types/job";
 
 const optionalText = (max: number) =>
@@ -20,6 +21,20 @@ const optionalUrl = z
   .transform((value) => (value && value.trim().length > 0 ? value.trim() : undefined))
   .pipe(z.string().url("正しいURL形式で入力してください").optional());
 
+const optionalDateTimeLocal = z
+  .string()
+  .optional()
+  .transform((value) => (value && value.trim().length > 0 ? value.trim() : undefined))
+  .transform((value, ctx) => {
+    if (value === undefined) return undefined;
+    const iso = fromDateTimeLocalInputValue(value);
+    if (!iso) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "日時の形式が正しくありません" });
+      return z.NEVER;
+    }
+    return iso;
+  });
+
 export const jobFormSchema = z
   .object({
     company_name: z
@@ -38,6 +53,9 @@ export const jobFormSchema = z
     status: z.enum(JOB_STATUSES as [string, ...string[]], {
       message: "応募ステータスを選択してください",
     }),
+    first_interview_at: optionalDateTimeLocal,
+    second_interview_at: optionalDateTimeLocal,
+    final_interview_at: optionalDateTimeLocal,
     location: optionalText(200),
     technologies: z.array(z.string().trim().min(1)).default([]),
     notes: optionalText(2000),
