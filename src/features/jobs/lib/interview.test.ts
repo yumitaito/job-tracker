@@ -44,6 +44,14 @@ describe("getLatestInterview", () => {
     });
   });
 
+  it("second_interview_atのみ入力されている場合、second_interviewを返す", () => {
+    const job = createTestJob({ second_interview_at: "2026-01-20T14:00:00.000Z" });
+    expect(getLatestInterview(job)).toEqual({
+      stage: "second_interview",
+      at: "2026-01-20T14:00:00.000Z",
+    });
+  });
+
   it("first_interview_atとsecond_interview_atが両方入力されている場合（finalは未入力）、second_interviewを優先して返す", () => {
     const job = createTestJob({
       first_interview_at: "2026-01-10T10:00:00.000Z",
