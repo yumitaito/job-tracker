@@ -26,6 +26,7 @@ Supabase Authによるアカウント機能に対応しており、ユーザー�
 - React Hook Form + Zod（フォーム管理・バリデーション）
 - TanStack Query（サーバーステート管理）
 - lucide-react（アイコン）
+- Vitest + React Testing Library（テスト）
 
 ## ディレクトリ構成
 
@@ -113,10 +114,13 @@ npm run dev
 
 `http://localhost:5173` で起動します。未ログイン状態で `/` や `/jobs` にアクセスすると `/login` にリダイレクトされます。
 
-### 5. 型チェック・Lint
+### 5. Lint・型チェック・テスト
 
 ```bash
-npm run lint
+npm run lint       # ESLint
+npm run typecheck  # tsc -b（型チェックのみ）
+npm run test       # Vitest（vitest run）
+npm run test:watch # Vitestをwatchモードで実行
 ```
 
 ### 6. ビルド
@@ -125,6 +129,15 @@ npm run lint
 npm run build
 npm run preview
 ```
+
+## 開発フロー（Claude Codeでの機能追加・修正）
+
+このリポジトリでは `.claude/agents/` にproduct/architect/ui-ux/implement/review/testの
+専門サブエージェントを用意し、依頼内容に応じて自動的に適切なエージェントを組み合わせて
+実装からPull Request作成までを進める運用にしています。詳細は [`CLAUDE.md`](CLAUDE.md) を参照してください。
+
+PRに対しては GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）で
+`lint` / `typecheck` / `test` / `build` を自動実行します。
 
 ## 画面構成
 
