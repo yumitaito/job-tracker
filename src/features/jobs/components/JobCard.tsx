@@ -17,10 +17,10 @@ export function JobCard({
   return (
     <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <Link to={`/jobs/${job.id}`} className="flex flex-1 items-center gap-3">
+        <Link to={`/jobs/${job.id}`} className="flex flex-1 items-center gap-3 min-w-0">
           <CompanyAvatar name={job.company_name} />
-          <div className="space-y-0.5">
-            <p className="font-bold text-foreground">{job.company_name}</p>
+          <div className="min-w-0 space-y-0.5">
+            <p className="truncate font-bold text-foreground">{job.company_name}</p>
             <p className="text-sm text-muted-foreground">{job.position}</p>
           </div>
         </Link>

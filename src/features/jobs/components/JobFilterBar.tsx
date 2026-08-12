@@ -35,8 +35,8 @@ export function JobFilterBar({
   ];
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         {filters.map((filter) => {
           const active = status === filter.value;
           return (
@@ -45,7 +45,7 @@ export function JobFilterBar({
               type="button"
               onClick={() => onStatusChange(filter.value)}
               className={cn(
-                "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors",
+                "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors",
                 active
                   ? "border-transparent bg-secondary text-secondary-foreground shadow-sm"
                   : "border-border bg-white text-foreground hover:bg-muted",
@@ -66,7 +66,7 @@ export function JobFilterBar({
       </div>
 
       <Select value={sort} onValueChange={(value) => onSortChange(value as JobSortOption)}>
-        <SelectTrigger className="w-full sm:w-48">
+        <SelectTrigger className="w-full lg:w-48">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

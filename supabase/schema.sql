@@ -23,7 +23,16 @@ create table if not exists public.jobs (
   max_salary integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint jobs_status_check check (status in ('not_applied', 'applied')),
+  constraint jobs_status_check check (status in (
+    'not_applied',
+    'document_screening',
+    'first_interview',
+    'second_interview',
+    'final_interview',
+    'offer',
+    'rejected',
+    'withdrawn'
+  )),
   constraint jobs_salary_range_check check (
     min_salary is null or max_salary is null or min_salary <= max_salary
   )

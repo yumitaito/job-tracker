@@ -12,8 +12,20 @@ const badgeVariants = cva(
         tech: "border-transparent bg-muted text-foreground font-medium",
         statusNotApplied:
           "border-transparent bg-[var(--status-not-applied-bg)] text-[var(--status-not-applied-fg)]",
-        statusApplied:
-          "border-transparent bg-[var(--status-applied-bg)] text-[var(--status-applied-fg)]",
+        statusDocumentScreening:
+          "border-transparent bg-[var(--status-document-screening-bg)] text-[var(--status-document-screening-fg)]",
+        statusFirstInterview:
+          "border-transparent bg-[var(--status-first-interview-bg)] text-[var(--status-first-interview-fg)]",
+        statusSecondInterview:
+          "border-transparent bg-[var(--status-second-interview-bg)] text-[var(--status-second-interview-fg)]",
+        statusFinalInterview:
+          "border-transparent bg-[var(--status-final-interview-bg)] text-[var(--status-final-interview-fg)]",
+        statusOffer:
+          "border-transparent bg-[var(--status-offer-bg)] text-[var(--status-offer-fg)]",
+        statusRejected:
+          "border-transparent bg-[var(--status-rejected-bg)] text-[var(--status-rejected-fg)]",
+        statusWithdrawn:
+          "border-transparent bg-[var(--status-withdrawn-bg)] text-[var(--status-withdrawn-fg)]",
       },
     },
     defaultVariants: {

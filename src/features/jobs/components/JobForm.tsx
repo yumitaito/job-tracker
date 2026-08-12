@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,9 +25,18 @@ import {
   type JobFormOutput,
   type JobFormValues,
 } from "@/features/jobs/schemas/job-schema";
-import { JOB_STATUSES, JOB_STATUS_LABELS } from "@/features/jobs/types/job";
+import { JOB_STATUS_LABELS, type JobStatus } from "@/features/jobs/types/job";
 
 const EMPLOYMENT_TYPES = ["正社員", "契約社員", "業務委託", "インターン", "その他"];
+
+const STATUS_GROUPS: { label: string; statuses: JobStatus[] }[] = [
+  { label: "応募状況", statuses: ["not_applied"] },
+  {
+    label: "選考中",
+    statuses: ["document_screening", "first_interview", "second_interview", "final_interview"],
+  },
+  { label: "結果", statuses: ["offer", "rejected", "withdrawn"] },
+];
 
 const isLikelyUrl = (value: string) => {
   if (!value.trim()) return false;
@@ -240,10 +252,16 @@ export function JobForm({
                     <SelectValue placeholder="選択してください" />
                   </SelectTrigger>
                   <SelectContent>
-                    {JOB_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {JOB_STATUS_LABELS[status]}
-                      </SelectItem>
+                    {STATUS_GROUPS.map((group, index) => (
+                      <SelectGroup key={group.label}>
+                        {index > 0 && <SelectSeparator />}
+                        <SelectLabel>{group.label}</SelectLabel>
+                        {group.statuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {JOB_STATUS_LABELS[status]}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>

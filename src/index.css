@@ -42,8 +42,20 @@
 
   --status-not-applied-bg: #eeedf5;
   --status-not-applied-fg: #5c5a70;
-  --status-applied-bg: #ece5ff;
-  --status-applied-fg: #6d3df5;
+  --status-document-screening-bg: #e3edfd;
+  --status-document-screening-fg: #2f5aa8;
+  --status-first-interview-bg: #e6e6fb;
+  --status-first-interview-fg: #4b3fb0;
+  --status-second-interview-bg: #ece5ff;
+  --status-second-interview-fg: #6d3df5;
+  --status-final-interview-bg: #f1e4fc;
+  --status-final-interview-fg: #7b2fd6;
+  --status-offer-bg: #f2f8d9;
+  --status-offer-fg: #4b5320;
+  --status-rejected-bg: #f6ece7;
+  --status-rejected-fg: #965244;
+  --status-withdrawn-bg: #eef0f1;
+  --status-withdrawn-fg: #5f6b70;
 
   --radius: 0.75rem;
 }

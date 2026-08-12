@@ -1,10 +1,34 @@
-export type JobStatus = "not_applied" | "applied";
+export type JobStatus =
+  | "not_applied"
+  | "document_screening"
+  | "first_interview"
+  | "second_interview"
+  | "final_interview"
+  | "offer"
+  | "rejected"
+  | "withdrawn";
 
-export const JOB_STATUSES: JobStatus[] = ["not_applied", "applied"];
+/** 選考の進行順（フォームの選択肢順・フィルタピル表示順に反映される） */
+export const JOB_STATUSES: JobStatus[] = [
+  "not_applied",
+  "document_screening",
+  "first_interview",
+  "second_interview",
+  "final_interview",
+  "offer",
+  "rejected",
+  "withdrawn",
+];
 
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   not_applied: "未応募",
-  applied: "応募済み",
+  document_screening: "書類選考中",
+  first_interview: "一次面接",
+  second_interview: "二次面接",
+  final_interview: "最終面接",
+  offer: "内定",
+  rejected: "不採用",
+  withdrawn: "辞退",
 };
 
 /** Supabaseの`jobs`テーブル1件分を表すエンティティ型 */
