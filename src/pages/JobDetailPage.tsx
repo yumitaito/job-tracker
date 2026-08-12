@@ -27,6 +27,7 @@ import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
 import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { useJob } from "@/features/jobs/hooks/use-job";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
+import { INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
 import { formatDate, formatDateTime, formatSalary } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -149,17 +150,17 @@ export default function JobDetailPage() {
             <InfoItem icon={<Tag />} label="選考ステータス" value={<JobStatusBadge status={job.status} />} />
             <InfoItem
               icon={<CalendarClock />}
-              label="一次面接日時"
+              label={INTERVIEW_STAGE_LABELS.first_interview}
               value={job.first_interview_at ? formatDateTime(job.first_interview_at) : null}
             />
             <InfoItem
               icon={<CalendarClock />}
-              label="二次面接日時"
+              label={INTERVIEW_STAGE_LABELS.second_interview}
               value={job.second_interview_at ? formatDateTime(job.second_interview_at) : null}
             />
             <InfoItem
               icon={<CalendarClock />}
-              label="最終面接日時"
+              label={INTERVIEW_STAGE_LABELS.final_interview}
               value={job.final_interview_at ? formatDateTime(job.final_interview_at) : null}
             />
             <InfoItem icon={<MapPin />} label="勤務地" value={job.location} />
