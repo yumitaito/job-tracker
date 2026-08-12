@@ -81,6 +81,9 @@ npm install
    - 既に `supabase/schema.sql`（旧・2段階ステータス版）を実行済みの環境で選考ステータスを8段階に拡張する場合：
      [`supabase/migrations/0003_expand_job_status_stages.sql`](supabase/migrations/0003_expand_job_status_stages.sql) を実行
      （詳細は「ステータスの多段階化」を参照）。
+   - 既に `jobs` テーブルを作成済みの環境で面接日時の記録に対応する場合：
+     [`supabase/migrations/0004_add_interview_datetimes.sql`](supabase/migrations/0004_add_interview_datetimes.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -168,6 +171,9 @@ create table public.jobs (
   application_url text,
   application_date date, -- 任意項目（未入力可）
   status text not null default 'not_applied', -- 選考ステータス（8段階、下記参照）
+  first_interview_at timestamptz, -- 一次面接日時（任意項目）
+  second_interview_at timestamptz, -- 二次面接日時（任意項目）
+  final_interview_at timestamptz, -- 最終面接日時（任意項目）
   location text,
   technologies text[],
   notes text,

@@ -6,6 +6,7 @@ import {
   User,
   Link as LinkIcon,
   Calendar,
+  CalendarClock,
   Tag,
   MapPin,
   Code2,
@@ -146,6 +147,21 @@ export default function JobDetailPage() {
               <InfoItem icon={<Calendar />} label="応募日" value={formatDate(job.application_date)} />
             ) : null}
             <InfoItem icon={<Tag />} label="選考ステータス" value={<JobStatusBadge status={job.status} />} />
+            <InfoItem
+              icon={<CalendarClock />}
+              label="一次面接日時"
+              value={job.first_interview_at ? formatDateTime(job.first_interview_at) : null}
+            />
+            <InfoItem
+              icon={<CalendarClock />}
+              label="二次面接日時"
+              value={job.second_interview_at ? formatDateTime(job.second_interview_at) : null}
+            />
+            <InfoItem
+              icon={<CalendarClock />}
+              label="最終面接日時"
+              value={job.final_interview_at ? formatDateTime(job.final_interview_at) : null}
+            />
             <InfoItem icon={<MapPin />} label="勤務地" value={job.location} />
             <InfoItem
               icon={<Code2 />}
