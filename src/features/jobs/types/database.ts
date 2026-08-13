@@ -2,6 +2,7 @@
  * Supabaseの`jobs`テーブルに対応するデータベース型。
  * supabase-jsのcreateClient<Database>()に渡すための最小限の型定義。
  */
+import type { NotificationsDatabaseTables } from "@/features/notifications/types/database";
 import type { JobStatus } from "./job";
 
 type JobRow = {
@@ -58,6 +59,8 @@ export interface Database {
         Update: JobUpdate;
         Relationships: [];
       };
+      push_subscriptions: NotificationsDatabaseTables["push_subscriptions"];
+      interview_push_sent: NotificationsDatabaseTables["interview_push_sent"];
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

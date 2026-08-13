@@ -22,6 +22,19 @@ export function formatDateTime(value: string | null | undefined): string {
   });
 }
 
+export function isToday(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+}
+
 export function formatSalary(value: number | null | undefined): string {
   if (value === null || value === undefined) return "-";
   return `${value.toLocaleString("ja-JP")}万円`;

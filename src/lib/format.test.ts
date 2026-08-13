@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime, formatSalary } from "./format";
+import { formatDate, formatDateTime, formatSalary, isToday } from "./format";
 
 describe("formatDate", () => {
   it("null/undefinedの場合はハイフンを返す", () => {
@@ -25,6 +25,24 @@ describe("formatDateTime", () => {
     const result = formatDateTime("2026-08-07T09:00:00.000Z");
     expect(result).toContain("2026");
     expect(result).not.toBe("-");
+  });
+});
+
+describe("isToday", () => {
+  it("null/undefined/不正な日付の場合はfalseを返す", () => {
+    expect(isToday(null)).toBe(false);
+    expect(isToday(undefined)).toBe(false);
+    expect(isToday("not-a-date")).toBe(false);
+  });
+
+  it("今日の日付ならtrueを返す", () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0);
+    expect(isToday(today.toISOString())).toBe(true);
+  });
+
+  it("今日以外の日付ならfalseを返す", () => {
+    expect(isToday("2020-01-01T09:00:00.000Z")).toBe(false);
   });
 });
 

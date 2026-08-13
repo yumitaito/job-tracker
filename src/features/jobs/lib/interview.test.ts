@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "@/features/jobs/types/job";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "./interview";
+import {
+  getInterviewReminderKey,
+  getJobInterviews,
+  getLatestInterview,
+  getMinutesUntilInterview,
+  INTERVIEW_STAGE_LABELS,
+  isFiveMinutesBeforeInterview,
+} from "./interview";
 
 /** テスト用の`Job`オブジェクトを生成するファクトリ関数。必要なフィールドのみoverridesで上書きする。 */
 function createTestJob(overrides: Partial<Job> = {}): Job {
@@ -86,5 +93,59 @@ describe("INTERVIEW_STAGE_LABELS", () => {
     expect(INTERVIEW_STAGE_LABELS.first_interview).toBe("一次面接日時");
     expect(INTERVIEW_STAGE_LABELS.second_interview).toBe("二次面接日時");
     expect(INTERVIEW_STAGE_LABELS.final_interview).toBe("最終面接日時");
+  });
+});
+
+describe("getJobInterviews", () => {
+  it("入力されている面接日時をすべて返す", () => {
+    const job = createTestJob({
+      first_interview_at: "2026-01-10T10:00:00.000Z",
+      second_interview_at: "2026-01-20T14:00:00.000Z",
+    });
+
+    expect(getJobInterviews(job)).toEqual([
+      { stage: "first_interview", at: "2026-01-10T10:00:00.000Z" },
+      { stage: "second_interview", at: "2026-01-20T14:00:00.000Z" },
+    ]);
+  });
+});
+
+describe("isFiveMinutesBeforeInterview", () => {
+  it("面接開始5分前のときtrueを返す", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    const now = new Date(interviewAt.getTime() - 5 * 60_000);
+
+    expect(isFiveMinutesBeforeInterview(interviewAt.toISOString(), now)).toBe(true);
+  });
+
+  it("面接開始4分前のときfalseを返す", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    const now = new Date(interviewAt.getTime() - 4 * 60_000);
+
+    expect(isFiveMinutesBeforeInterview(interviewAt.toISOString(), now)).toBe(false);
+  });
+
+  it("面接開始6分前のときfalseを返す", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    const now = new Date(interviewAt.getTime() - 6 * 60_000);
+
+    expect(isFiveMinutesBeforeInterview(interviewAt.toISOString(), now)).toBe(false);
+  });
+});
+
+describe("getInterviewReminderKey", () => {
+  it("求人ID・面接段階・日時から一意キーを生成する", () => {
+    expect(getInterviewReminderKey("job-1", "first_interview", "2026-08-20T05:00:00.000Z")).toBe(
+      "job-1:first_interview:2026-08-20T05:00:00.000Z",
+    );
+  });
+});
+
+describe("getMinutesUntilInterview", () => {
+  it("未来の面接までの残り分数を返す", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    const now = new Date(interviewAt.getTime() - 5 * 60_000);
+
+    expect(getMinutesUntilInterview(interviewAt.toISOString(), now)).toBe(5);
   });
 });

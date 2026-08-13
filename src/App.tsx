@@ -1,6 +1,8 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
+import { InterviewReminder } from "@/features/jobs/components/InterviewReminder";
+import { PushSubscriptionSync } from "@/features/notifications/components/PushSubscriptionSync";
 
 const JobListPage = lazy(() => import("@/pages/JobListPage"));
 const JobNewPage = lazy(() => import("@/pages/JobNewPage"));
@@ -13,7 +15,10 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 export default function App() {
   return (
-    <Suspense fallback={null}>
+    <>
+      <PushSubscriptionSync />
+      <InterviewReminder />
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Navigate to="/jobs" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -61,5 +66,6 @@ export default function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
+    </>
   );
 }
