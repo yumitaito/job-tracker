@@ -303,7 +303,7 @@ Supabase Dashboard → Project Settings → Edge Functions → Secrets に以下
 | `VAPID_PUBLIC_KEY` | 上記 Public Key |
 | `VAPID_PRIVATE_KEY` | 上記 Private Key |
 | `VAPID_SUBJECT` | `mailto:あなたのメールアドレス` |
-| `CRON_SECRET` | 任意の長いランダム文字列（cron 呼び出し認証用） |
+| `CRON_SECRET` | **必須**。長いランダム文字列（cron 呼び出し認証用）。未設定の場合、Edge Functionは全リクエストを拒否します |
 
 ### 3. Edge Function のデプロイ
 

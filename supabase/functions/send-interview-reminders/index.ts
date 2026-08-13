@@ -7,7 +7,7 @@
 // - VAPID_PUBLIC_KEY
 // - VAPID_PRIVATE_KEY
 // - VAPID_SUBJECT (例: mailto:you@example.com)
-// - CRON_SECRET (任意・呼び出し元認証用)
+// - CRON_SECRET (必須・呼び出し元認証用。未設定の場合はリクエストを拒否する)
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
@@ -112,11 +112,12 @@ Deno.serve(async (req: Request) => {
   }
 
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (cronSecret) {
-    const provided = req.headers.get("x-cron-secret");
-    if (provided !== cronSecret) {
-      return jsonResponse({ ok: false, error: "認証に失敗しました" }, 401);
-    }
+  if (!cronSecret) {
+    return jsonResponse({ ok: false, error: "サーバー設定が不足しています（CRON_SECRET未設定）" }, 500);
+  }
+  const provided = req.headers.get("x-cron-secret");
+  if (provided !== cronSecret) {
+    return jsonResponse({ ok: false, error: "認証に失敗しました" }, 401);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -158,15 +159,22 @@ Deno.serve(async (req: Request) => {
   const errors: string[] = [];
 
   for (const candidate of candidates) {
-    const { data: alreadySent } = await adminClient
-      .from("interview_push_sent")
-      .select("id")
-      .eq("job_id", candidate.jobId)
-      .eq("interview_stage", candidate.stage)
-      .eq("interview_at", candidate.at)
-      .maybeSingle();
+    // 送信前に一意制約（job_id, interview_stage, interview_at）で送信予約を確保する。
+    // insertが成功した（＝他プロセスがまだ予約していない）場合のみ送信し、
+    // 重複（23505）の場合は他プロセスが送信済み・送信中とみなしてスキップする。
+    const { error: reserveError } = await adminClient.from("interview_push_sent").insert({
+      user_id: candidate.userId,
+      job_id: candidate.jobId,
+      interview_stage: candidate.stage,
+      interview_at: candidate.at,
+    });
 
-    if (alreadySent) continue;
+    if (reserveError) {
+      if (reserveError.code !== "23505") {
+        errors.push(reserveError.message);
+      }
+      continue;
+    }
 
     const { data: subscriptions, error: subscriptionsError } = await adminClient
       .from("push_subscriptions")
@@ -216,18 +224,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (delivered) {
-      const { error: insertError } = await adminClient.from("interview_push_sent").insert({
-        user_id: candidate.userId,
-        job_id: candidate.jobId,
-        interview_stage: candidate.stage,
-        interview_at: candidate.at,
-      });
-
-      if (insertError) {
-        errors.push(insertError.message);
-      } else {
-        sentCount += 1;
-      }
+      sentCount += 1;
     }
   }
 
