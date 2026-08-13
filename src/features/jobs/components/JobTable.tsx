@@ -13,7 +13,7 @@ import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime, isToday } from "@/lib/format";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobTable({
@@ -64,7 +64,15 @@ export function JobTable({
                     <p className="font-bold text-foreground">
                       {INTERVIEW_STAGE_LABELS[latestInterview.stage]}
                     </p>
-                    <p>{formatDateTime(latestInterview.at)}</p>
+                    <p
+                      className={
+                        isToday(latestInterview.at)
+                          ? "whitespace-nowrap font-bold text-destructive"
+                          : "whitespace-nowrap"
+                      }
+                    >
+                      {formatDateTime(latestInterview.at)}
+                    </p>
                   </div>
                 ) : null}
               </TableCell>

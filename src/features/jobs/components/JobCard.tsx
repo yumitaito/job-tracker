@@ -5,7 +5,7 @@ import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime, isToday } from "@/lib/format";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobCard({
@@ -21,9 +21,10 @@ export function JobCard({
     latestInterview && {
       label: INTERVIEW_STAGE_LABELS[latestInterview.stage],
       value: formatDateTime(latestInterview.at),
+      isToday: isToday(latestInterview.at),
     },
     { label: "最終更新日", value: formatDate(job.updated_at) },
-  ].filter((item): item is { label: string; value: string } => Boolean(item));
+  ].filter((item): item is { label: string; value: string; isToday?: boolean } => Boolean(item));
 
   return (
     <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -48,7 +49,13 @@ export function JobCard({
         {infoItems.map((item) => (
           <div key={item.label}>
             <p className="font-semibold text-foreground">{item.label}</p>
-            <p>{item.value}</p>
+            <p
+              className={
+                item.isToday ? "whitespace-nowrap font-bold text-destructive" : "whitespace-nowrap"
+              }
+            >
+              {item.value}
+            </p>
           </div>
         ))}
       </div>
