@@ -1,5 +1,6 @@
 import { chromium, type FullConfig } from "@playwright/test";
 import { AUTH_STORAGE_STATE } from "../playwright.config";
+import { fieldByLabel } from "./helpers";
 
 /**
  * E2Eテスト用のグローバルセットアップ。
@@ -30,8 +31,8 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   try {
     const page = await browser.newPage();
     await page.goto(`${baseURL}/login`);
-    await page.getByLabel("メールアドレス").fill(email);
-    await page.getByLabel("パスワード").fill(password);
+    await fieldByLabel(page, "メールアドレス").fill(email);
+    await fieldByLabel(page, "パスワード").fill(password);
     await page.getByRole("button", { name: "ログイン" }).click();
 
     // ログイン成功後は /jobs へリダイレクトされる
