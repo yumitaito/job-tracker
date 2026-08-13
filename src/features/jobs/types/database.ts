@@ -2,6 +2,7 @@
  * Supabaseの`jobs`テーブルに対応するデータベース型。
  * supabase-jsのcreateClient<Database>()に渡すための最小限の型定義。
  */
+import type { NotificationsDatabaseTables } from "@/features/notifications/types/database";
 import type { JobStatus } from "./job";
 
 type JobRow = {
@@ -49,33 +50,6 @@ type JobInsert = {
 
 type JobUpdate = Partial<JobInsert>;
 
-type PushSubscriptionRow = {
-  id: string;
-  user_id: string;
-  endpoint: string;
-  p256dh: string;
-  auth: string;
-  created_at: string;
-};
-
-type PushSubscriptionInsert = {
-  id?: string;
-  user_id?: string;
-  endpoint: string;
-  p256dh: string;
-  auth: string;
-  created_at?: string;
-};
-
-type InterviewPushSentRow = {
-  id: string;
-  user_id: string;
-  job_id: string;
-  interview_stage: "first_interview" | "second_interview" | "final_interview";
-  interview_at: string;
-  sent_at: string;
-};
-
 export interface Database {
   public: {
     Tables: {
@@ -85,21 +59,8 @@ export interface Database {
         Update: JobUpdate;
         Relationships: [];
       };
-      push_subscriptions: {
-        Row: PushSubscriptionRow;
-        Insert: PushSubscriptionInsert;
-        Update: Partial<PushSubscriptionInsert>;
-        Relationships: [];
-      };
-      interview_push_sent: {
-        Row: InterviewPushSentRow;
-        Insert: Omit<InterviewPushSentRow, "id" | "sent_at"> & {
-          id?: string;
-          sent_at?: string;
-        };
-        Update: Partial<InterviewPushSentRow>;
-        Relationships: [];
-      };
+      push_subscriptions: NotificationsDatabaseTables["push_subscriptions"];
+      interview_push_sent: NotificationsDatabaseTables["interview_push_sent"];
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
