@@ -1,6 +1,7 @@
 // Supabase Edge Function: send-interview-reminders
 //
-// pg_cron などから1分ごとに呼び出し、面接開始5分前の Push 通知を送信する。
+// pg_cron などから1分ごとに呼び出し、面接開始5分前〜直前までの間に Push 通知を送信する。
+// 送信に失敗した場合は予約をロールバックし、次回以降のcron実行で再試行する。
 // 実行には service_role と VAPID 秘密鍵が必要（Supabase Secrets に登録）。
 //
 // 必要な Secrets:
@@ -45,7 +46,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function isFiveMinutesBeforeInterview(at: string, now: Date): boolean {
+// 面接開始まで残り0分超5分以下かどうかを判定する。
+// cronは1分間隔で実行されるため、送信失敗時に予約をロールバックしても
+// この窓の間であれば次回以降のtickで再度候補として拾われ再試行できる。
+// 重複送信は interview_push_sent への予約insert（一意制約・23505エラー時スキップ）で防止する。
+function isWithinReminderWindow(at: string, now: Date): boolean {
   const interviewAt = new Date(at);
   if (Number.isNaN(interviewAt.getTime())) return false;
 
@@ -53,7 +58,7 @@ function isFiveMinutesBeforeInterview(at: string, now: Date): boolean {
   if (remainingMs <= 0) return false;
 
   const minutes = remainingMs / 60_000;
-  return minutes > 4 && minutes <= 5;
+  return minutes > 0 && minutes <= 5;
 }
 
 function formatDateTime(value: string): string {
@@ -89,7 +94,7 @@ function collectInterviewCandidates(
     ];
 
     for (const [stage, at] of entries) {
-      if (!at || !isFiveMinutesBeforeInterview(at, now)) continue;
+      if (!at || !isWithinReminderWindow(at, now)) continue;
       candidates.push({
         jobId: job.id,
         userId: job.user_id,
