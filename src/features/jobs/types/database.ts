@@ -49,6 +49,33 @@ type JobInsert = {
 
 type JobUpdate = Partial<JobInsert>;
 
+type PushSubscriptionRow = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+};
+
+type PushSubscriptionInsert = {
+  id?: string;
+  user_id?: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at?: string;
+};
+
+type InterviewPushSentRow = {
+  id: string;
+  user_id: string;
+  job_id: string;
+  interview_stage: "first_interview" | "second_interview" | "final_interview";
+  interview_at: string;
+  sent_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -56,6 +83,21 @@ export interface Database {
         Row: JobRow;
         Insert: JobInsert;
         Update: JobUpdate;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: PushSubscriptionRow;
+        Insert: PushSubscriptionInsert;
+        Update: Partial<PushSubscriptionInsert>;
+        Relationships: [];
+      };
+      interview_push_sent: {
+        Row: InterviewPushSentRow;
+        Insert: Omit<InterviewPushSentRow, "id" | "sent_at"> & {
+          id?: string;
+          sent_at?: string;
+        };
+        Update: Partial<InterviewPushSentRow>;
         Relationships: [];
       };
     };

@@ -17,6 +17,7 @@ import { useUpdatePassword } from "@/features/auth/hooks/use-update-password";
 import { useSignOut } from "@/features/auth/hooks/use-sign-out";
 import { useDeleteAccount } from "@/features/auth/hooks/use-delete-account";
 import { DeleteAccountDialog } from "@/features/auth/components/DeleteAccountDialog";
+import { PushNotificationSettings } from "@/features/notifications/components/PushNotificationSettings";
 import {
   profileSchema,
   passwordChangeSchema,
@@ -43,6 +44,7 @@ export default function SettingsPage() {
 
       <Card className="divide-y divide-border overflow-hidden">
         <AccountInfoSection user={user} />
+        <PushNotificationSettings />
         <PasswordSection />
         <AccountSection />
         <DangerZoneSection />

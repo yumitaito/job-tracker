@@ -84,6 +84,9 @@ npm install
    - 既に `jobs` テーブルを作成済みの環境で面接日時の記録に対応する場合：
      [`supabase/migrations/0004_add_interview_datetimes.sql`](supabase/migrations/0004_add_interview_datetimes.sql) を実行
      （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
+   - Web Push 通知を使う場合：
+     [`supabase/migrations/0005_add_push_subscriptions.sql`](supabase/migrations/0005_add_push_subscriptions.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -91,10 +94,12 @@ npm install
    ```bash
    supabase functions deploy delete-account --project-ref <あなたのproject-ref>
    supabase functions deploy fetch-job-metadata --project-ref <あなたのproject-ref>
+   supabase functions deploy send-interview-reminders --project-ref <あなたのproject-ref>
    ```
 
    - `delete-account`：アカウント削除機能に必須です。デプロイしない場合、設定画面の「アカウントを削除」が動作しません。
    - `fetch-job-metadata`：任意（URL自動入力機能）。デプロイしなくても他の機能には影響しません。
+   - `send-interview-reminders`：Web Push 通知に必須です（[Web Push 通知について](#web-push-通知について)を参照）。
 
 ### 3. 環境変数の設定
 
@@ -107,7 +112,10 @@ cp .env.example .env
 ```env
 VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+VITE_VAPID_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+
+Web Push を使う場合は `VITE_VAPID_PUBLIC_KEY` も必要です（生成方法は [Web Push 通知について](#web-push-通知について) を参照）。
 
 `.env` はGit管理対象外です（`.gitignore`で除外済み）。**service_role keyはフロントエンドのどこにも配置しないでください。**
 Edge Function内でのみ、Supabaseが自動的に注入する環境変数として使用しています。
@@ -271,6 +279,67 @@ Edge Functionをサーバー側に用意し、そこでのみ使用していま�
 - ブラウザから直接外部サイトへfetchするとCORSでブロックされるため、Edge Function経由でサーバー側から取得しています。
 - サイトによっては取得できる情報が少ない、または全く取得できないことがあります（正常な挙動です）。
 - ローカルホストやプライベートIPへのURLはサーバー側で拒否されます（簡易SSRF対策）。
+
+## Web Push 通知について
+
+面接開始5分前に、**ブラウザを閉じていても** OS 通知でリマインドする機能です。
+設定画面の「面接リマインダー通知」からオンにできます。
+
+### 1. VAPID キーの生成
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+- **Public Key** → `.env` の `VITE_VAPID_PUBLIC_KEY`
+- **Private Key** → Supabase Secrets の `VAPID_PRIVATE_KEY`
+
+### 2. Supabase Secrets の登録
+
+Supabase Dashboard → Project Settings → Edge Functions → Secrets に以下を追加します。
+
+| Secret | 値 |
+| --- | --- |
+| `VAPID_PUBLIC_KEY` | 上記 Public Key |
+| `VAPID_PRIVATE_KEY` | 上記 Private Key |
+| `VAPID_SUBJECT` | `mailto:あなたのメールアドレス` |
+| `CRON_SECRET` | 任意の長いランダム文字列（cron 呼び出し認証用） |
+
+### 3. Edge Function のデプロイ
+
+```bash
+supabase functions deploy send-interview-reminders --project-ref <あなたのproject-ref>
+```
+
+### 4. 定期実行（1分ごと）の設定
+
+Supabase Dashboard → Database → Extensions で `pg_cron` と `pg_net` を有効化し、
+SQL Editor で以下のような cron ジョブを登録します（URL・キーは自分のプロジェクトに合わせて置き換え）。
+
+```sql
+select cron.schedule(
+  'send-interview-reminders',
+  '* * * * *',
+  $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/send-interview-reminders',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer <anon-key>',
+      'x-cron-secret', '<CRON_SECRET>'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+### 動作の前提
+
+- **HTTPS**（本番）または **localhost**（開発）で動作します
+- Chrome / Edge / Firefox など Push 対応ブラウザが必要です
+- Safari は macOS/iOS の PWA 追加後など、環境によって制限があります
+- アプリのタブを開いている間は、従来どおり画面上部のアラートも表示されます
 
 ## セキュリティについて
 
