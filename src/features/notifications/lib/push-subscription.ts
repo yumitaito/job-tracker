@@ -46,7 +46,9 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 export async function getExistingPushSubscription(): Promise<PushSubscription | null> {
   if (!isPushSupported()) return null;
 
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (!registration) return null;
+
   return registration.pushManager.getSubscription();
 }
 
