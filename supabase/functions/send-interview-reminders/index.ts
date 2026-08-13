@@ -225,6 +225,20 @@ Deno.serve(async (req: Request) => {
 
     if (delivered) {
       sentCount += 1;
+    } else {
+      // 送信を試みたが1件も配信できなかった場合、予約行をロールバックして
+      // 次回cron実行時に再試行できるようにする（本人にまだ通知が届いていないため）。
+      const { error: rollbackError } = await adminClient
+        .from("interview_push_sent")
+        .delete()
+        .eq("user_id", candidate.userId)
+        .eq("job_id", candidate.jobId)
+        .eq("interview_stage", candidate.stage)
+        .eq("interview_at", candidate.at);
+
+      if (rollbackError) {
+        errors.push(`予約ロールバック失敗: ${rollbackError.message}`);
+      }
     }
   }
 
