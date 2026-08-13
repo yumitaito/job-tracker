@@ -107,11 +107,23 @@ describe("getExistingPushSubscription", () => {
     const subscription = { endpoint: "https://example.com/push/1" };
     const getSubscription = vi.fn().mockResolvedValue(subscription);
     const registration = { pushManager: { getSubscription } };
-    stubServiceWorker({ ready: Promise.resolve(registration) });
+    const getRegistration = vi.fn().mockResolvedValue(registration);
+    stubServiceWorker({ getRegistration, ready: new Promise(() => {}) });
     vi.stubGlobal("PushManager", class {});
     vi.stubGlobal("Notification", { requestPermission: vi.fn(), permission: "default" });
 
     await expect(getExistingPushSubscription()).resolves.toBe(subscription);
+  });
+
+  it("Service Workerが未登録の場合はreadyを待たずに即座にnullを返す（本番の無限ローディング回避）", async () => {
+    // getRegistration()はundefinedを返す一方、readyは（未登録のため）永遠に解決しないPromiseにしておき、
+    // getExistingPushSubscription()がreadyを待たずに解決することを検証する
+    const getRegistration = vi.fn().mockResolvedValue(undefined);
+    stubServiceWorker({ getRegistration, ready: new Promise(() => {}) });
+    vi.stubGlobal("PushManager", class {});
+    vi.stubGlobal("Notification", { requestPermission: vi.fn(), permission: "default" });
+
+    await expect(getExistingPushSubscription()).resolves.toBeNull();
   });
 });
 
@@ -196,7 +208,8 @@ describe("unsubscribeFromPushNotifications", () => {
     const registration = {
       pushManager: { getSubscription: vi.fn().mockResolvedValue({ unsubscribe }) },
     };
-    stubServiceWorker({ ready: Promise.resolve(registration) });
+    const getRegistration = vi.fn().mockResolvedValue(registration);
+    stubServiceWorker({ getRegistration, ready: new Promise(() => {}) });
     vi.stubGlobal("PushManager", class {});
     vi.stubGlobal("Notification", { requestPermission: vi.fn(), permission: "default" });
 
@@ -207,7 +220,17 @@ describe("unsubscribeFromPushNotifications", () => {
 
   it("購読が存在しない場合は何もせずエラーにならない", async () => {
     const registration = { pushManager: { getSubscription: vi.fn().mockResolvedValue(null) } };
-    stubServiceWorker({ ready: Promise.resolve(registration) });
+    const getRegistration = vi.fn().mockResolvedValue(registration);
+    stubServiceWorker({ getRegistration, ready: new Promise(() => {}) });
+    vi.stubGlobal("PushManager", class {});
+    vi.stubGlobal("Notification", { requestPermission: vi.fn(), permission: "default" });
+
+    await expect(unsubscribeFromPushNotifications()).resolves.toBeUndefined();
+  });
+
+  it("Service Workerが未登録の場合は何もせずエラーにならない", async () => {
+    const getRegistration = vi.fn().mockResolvedValue(undefined);
+    stubServiceWorker({ getRegistration, ready: new Promise(() => {}) });
     vi.stubGlobal("PushManager", class {});
     vi.stubGlobal("Notification", { requestPermission: vi.fn(), permission: "default" });
 
