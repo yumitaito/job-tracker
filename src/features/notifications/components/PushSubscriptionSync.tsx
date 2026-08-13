@@ -7,11 +7,12 @@ import { isPushSupported } from "@/features/notifications/lib/push-subscription"
 export function PushSubscriptionSync() {
   const { user } = useAuth();
   const syncPush = useSyncPushSubscription();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (!user || !isPushSupported() || Notification.permission !== "granted") return;
+    if (!userId || !isPushSupported() || Notification.permission !== "granted") return;
     syncPush.mutate();
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

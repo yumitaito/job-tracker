@@ -39,7 +39,7 @@ function saveNotifiedKeys(keys: Set<string>) {
 
 export function InterviewReminder() {
   const { user } = useAuth();
-  const { data: jobs } = useJobs("application_date_desc");
+  const { data: jobs } = useJobs("application_date_desc", !!user);
   const [alerts, setAlerts] = useState<InterviewReminderAlert[]>([]);
   const notifiedKeysRef = useRef<Set<string>>(loadNotifiedKeys());
 
