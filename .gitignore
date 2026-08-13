@@ -20,6 +20,11 @@ skills-lock.json
 # Supabase CLIのローカルキャッシュ
 supabase/.temp
 
+# Playwright（E2Eテスト）
+e2e/.auth/
+playwright-report/
+test-results/
+
 # Environment variables
 .env
 .env.*

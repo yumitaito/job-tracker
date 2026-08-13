@@ -151,7 +151,58 @@ npm run preview
 実装からPull Request作成までを進める運用にしています。詳細は [`CLAUDE.md`](CLAUDE.md) を参照してください。
 
 PRに対しては GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）で
-`lint` / `typecheck` / `test` / `build` を自動実行します。
+`lint` / `typecheck` / `test` / `build`（`quality`ジョブ）と、Playwrightによる
+E2Eスモークテスト（`e2e`ジョブ、並列実行）を自動実行します。
+
+## E2Eテスト（Playwright）
+
+[Playwright](https://playwright.dev/) による最小限のE2Eスモークテストを `e2e/` ディレクトリに用意しています。
+`src/` 配下のユニットテスト（Vitest）とは別体系で、ブラウザ（Chromiumのみ）を実際に起動して
+ログイン画面・未ログイン時のリダイレクト・404ページなどの主要な導線を確認します。
+
+- `e2e/global-setup.ts`：テスト用アカウントの認証情報が設定されていれば、実際に `/login`
+  フォームからUI経由でログインし、認証済みセッションを `e2e/.auth/user.json`（Git管理対象外）に保存します。
+- `e2e/smoke/unauthenticated.spec.ts`：未ログイン状態で完結するテスト（Secrets不要、常時実行）。
+- `e2e/smoke/authenticated.spec.ts`：ログイン後のテスト（テスト用アカウントの認証情報が必須）。
+  未設定の場合は `test.skip()` されるため、Secrets未設定でもCIは失敗しません。
+
+### 必要なGitHub Secrets
+
+`e2e`ジョブ・および認証ありのE2Eテストを実行するには、リポジトリに以下のSecretsを登録します
+（Settings → Secrets and variables → Actions）。未登録でも `quality`/`e2e` ジョブ自体は失敗しません
+（未ログイン系のテストのみ実行され、ログイン後のテストはskipされます）。
+
+| Secret名 | 内容 |
+| --- | --- |
+| `E2E_SUPABASE_URL` | E2Eテストで使用するSupabaseプロジェクトのURL |
+| `E2E_SUPABASE_ANON_KEY` | 同プロジェクトのanon key |
+| `E2E_TEST_USER_EMAIL` | E2Eテスト専用アカウントのメールアドレス |
+| `E2E_TEST_USER_PASSWORD` | E2Eテスト専用アカウントのパスワード |
+
+**注意**：E2Eテスト専用のアカウントを別途用意し、実際の業務データを持つアカウントは使用しないでください。
+E2Eテストはこのアカウントで求人データを作成しない設計になっていますが、念のため専用アカウントを推奨します。
+
+### ローカルでの実行方法
+
+`.env`（`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`）に加えて、認証ありのテストを実行する場合は
+環境変数 `E2E_TEST_USER_EMAIL` / `E2E_TEST_USER_PASSWORD` にテスト専用アカウントの認証情報を設定してください。
+
+```bash
+# 初回のみ：Playwright用のChromiumをインストール
+npx playwright install --with-deps chromium
+
+# 未ログイン系のテストのみ実行する場合（Secrets不要）
+npm run test:e2e
+
+# ログイン後のテストも実行する場合
+E2E_TEST_USER_EMAIL=you+e2e@example.com E2E_TEST_USER_PASSWORD=xxxxxxxx npm run test:e2e
+
+# UIモードで実行（デバッグ用）
+npm run test:e2e:ui
+```
+
+`test:e2e` は内部で開発サーバー（`npm run dev`）を自動起動します（`playwright.config.ts` の `webServer` 設定）。
+ビルドは行わないため、`.env` が未設定でもプレースホルダー値で起動しますが、その場合は未ログイン系のテストのみ意味を持ちます。
 
 ## 画面構成
 
