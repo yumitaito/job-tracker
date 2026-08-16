@@ -20,23 +20,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TechnologyInput } from "@/features/jobs/components/TechnologyInput";
 import { useFetchJobMetadata } from "@/features/jobs/hooks/use-fetch-job-metadata";
 import type { JobMetadata } from "@/features/jobs/api/job-metadata-api";
+import { STATUS_GROUPS } from "@/features/jobs/lib/job-status-groups";
 import {
   jobFormSchema,
   type JobFormOutput,
   type JobFormValues,
 } from "@/features/jobs/schemas/job-schema";
-import { JOB_STATUS_LABELS, type JobStatus } from "@/features/jobs/types/job";
+import { JOB_STATUS_LABELS, DESIRE_LEVELS, DESIRE_LEVEL_LABELS } from "@/features/jobs/types/job";
 
 const EMPLOYMENT_TYPES = ["正社員", "契約社員", "業務委託", "インターン", "その他"];
-
-const STATUS_GROUPS: { label: string; statuses: JobStatus[] }[] = [
-  { label: "応募状況", statuses: ["not_applied"] },
-  {
-    label: "選考中",
-    statuses: ["document_screening", "first_interview", "second_interview", "final_interview"],
-  },
-  { label: "結果", statuses: ["offer", "rejected", "withdrawn"] },
-];
 
 const isLikelyUrl = (value: string) => {
   if (!value.trim()) return false;
@@ -55,6 +47,7 @@ const EMPTY_VALUES: JobFormValues = {
   application_url: "",
   application_date: "",
   status: "",
+  desire_level: "medium",
   first_interview_at: "",
   second_interview_at: "",
   final_interview_at: "",
@@ -265,6 +258,27 @@ export function JobForm({
                           </SelectItem>
                         ))}
                       </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
+
+          <Field label="志望度" required error={errors.desire_level?.message}>
+            <Controller
+              control={control}
+              name="desire_level"
+              render={({ field }) => (
+                <Select value={field.value ?? "medium"} onValueChange={field.onChange}>
+                  <SelectTrigger aria-invalid={Boolean(errors.desire_level)}>
+                    <SelectValue placeholder="選択してください" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DESIRE_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {DESIRE_LEVEL_LABELS[level]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

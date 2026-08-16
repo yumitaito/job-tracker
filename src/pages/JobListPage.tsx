@@ -14,8 +14,9 @@ import { useJobListFilters } from "@/features/jobs/hooks/use-job-list-filters";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
 import { useReorderJobs } from "@/features/jobs/hooks/use-reorder-jobs";
+import { useUpdateJobFromList } from "@/features/jobs/hooks/use-update-job-from-list";
 import { JOB_STATUSES } from "@/features/jobs/types/job";
-import type { Job, JobStatusFilter } from "@/features/jobs/types/job";
+import type { Job, JobStatusFilter, UpdateJobInput } from "@/features/jobs/types/job";
 
 export default function JobListPage() {
   const { status, setStatus, sort, setSort } = useJobListFilters();
@@ -24,8 +25,17 @@ export default function JobListPage() {
   const { data: jobs, isPending, isError, error, refetch } = useJobs(sort);
   const deleteJob = useDeleteJob();
   const reorderJobs = useReorderJobs(sort);
+  const updateJobFromList = useUpdateJobFromList();
 
   const canReorder = status === "all" && sort === "display_order_asc";
+  const updatingJobId =
+    updateJobFromList.isPending && updateJobFromList.variables
+      ? updateJobFromList.variables.id
+      : null;
+
+  const handleUpdateJob = (jobId: string, input: UpdateJobInput) => {
+    updateJobFromList.mutate({ id: jobId, input });
+  };
 
   const counts = useMemo(() => {
     const base = { all: 0 } as Record<JobStatusFilter, number>;
@@ -102,6 +112,8 @@ export default function JobListPage() {
                   reorderEnabled={canReorder}
                   onReorder={handleReorder}
                   onDeleteRequest={setJobPendingDelete}
+                  onUpdateJob={handleUpdateJob}
+                  updatingJobId={updatingJobId}
                 />
               </div>
               <div className="p-4 md:hidden">
@@ -110,6 +122,8 @@ export default function JobListPage() {
                   reorderEnabled={canReorder}
                   onReorder={handleReorder}
                   onDeleteRequest={setJobPendingDelete}
+                  onUpdateJob={handleUpdateJob}
+                  updatingJobId={updatingJobId}
                 />
               </div>
             </>

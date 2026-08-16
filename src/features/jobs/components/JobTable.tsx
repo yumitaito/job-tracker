@@ -10,39 +10,53 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
-import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
+import {
+  JobListDesireLevelField,
+  JobListInterviewField,
+  JobListStatusField,
+  type JobListFieldUpdater,
+} from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobTable({
   jobs,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId = null,
 }: {
   jobs: Job[];
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId?: string | null;
 }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>企業名 / 職種</TableHead>
-          <TableHead className="w-44">面接日時</TableHead>
-          <TableHead className="whitespace-nowrap">選考ステータス</TableHead>
+          <TableHead className="w-52">面接日時</TableHead>
+          <TableHead className="w-24 whitespace-nowrap">志望度</TableHead>
+          <TableHead className="min-w-40 whitespace-nowrap">選考ステータス</TableHead>
           <TableHead className="w-40">最終更新日</TableHead>
           <TableHead className="w-10" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {jobs.map((job) => {
-          const latestInterview = getLatestInterview(job);
           const isPastInterview = isJobInterviewPast(job);
+          const isUpdating = updatingJobId === job.id;
+
           return (
-            <TableRow key={job.id} className={cn("group", getPastInterviewSurfaceClassName(isPastInterview))}>
-              <TableCell>
+            <TableRow
+              key={job.id}
+              className={cn("group", getPastInterviewSurfaceClassName(isPastInterview))}
+            >
+              <TableCell className="align-top py-4">
                 <Link to={`/jobs/${job.id}`} className="flex items-center gap-3">
                   <CompanyAvatar name={job.company_name} />
                   <div className="space-y-1">
@@ -54,20 +68,22 @@ export function JobTable({
                   </div>
                 </Link>
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {latestInterview ? (
-                  <div>
-                    <p className="font-bold text-foreground">
-                      {INTERVIEW_STAGE_LABELS[latestInterview.stage]}
-                    </p>
-                    <p className={getInterviewDateTimeClassName(latestInterview.at)}>
-                      {formatDateTime(latestInterview.at)}
-                    </p>
-                  </div>
-                ) : null}
+              <TableCell className="align-top py-4">
+                <JobListInterviewField
+                  job={job}
+                  onUpdate={onUpdateJob}
+                  isUpdating={isUpdating}
+                />
               </TableCell>
-              <TableCell>
-                <JobStatusBadge status={job.status} />
+              <TableCell className="align-top py-4">
+                <JobListDesireLevelField
+                  job={job}
+                  onUpdate={onUpdateJob}
+                  isUpdating={isUpdating}
+                />
+              </TableCell>
+              <TableCell className="align-top py-4">
+                <JobListStatusField job={job} onUpdate={onUpdateJob} isUpdating={isUpdating} />
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {formatDate(job.updated_at)}

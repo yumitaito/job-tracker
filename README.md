@@ -90,6 +90,9 @@ npm install
    - 一覧の手動並び替え（ドラッグ&ドロップ）を使う場合：
      [`supabase/migrations/0006_add_display_order.sql`](supabase/migrations/0006_add_display_order.sql) を実行
      （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
+   - 志望度フィールドを使う場合：
+     [`supabase/migrations/0007_add_desire_level.sql`](supabase/migrations/0007_add_desire_level.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -233,6 +236,7 @@ create table public.jobs (
   application_url text,
   application_date date, -- 任意項目（未入力可）
   status text not null default 'not_applied', -- 選考ステータス（8段階、下記参照）
+  desire_level text not null default 'medium', -- 志望度（high / medium / low）
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
@@ -254,6 +258,7 @@ create table public.jobs (
     'rejected',
     'withdrawn'
   )),
+  constraint jobs_desire_level_check check (desire_level in ('high', 'medium', 'low')),
   constraint jobs_salary_range_check check (
     min_salary is null or max_salary is null or min_salary <= max_salary
   )

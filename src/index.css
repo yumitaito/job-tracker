@@ -56,6 +56,12 @@
   --status-rejected-fg: #965244;
   --status-withdrawn-bg: #eef0f1;
   --status-withdrawn-fg: #5f6b70;
+  --desire-high-bg: #fde8e8;
+  --desire-high-fg: #b42318;
+  --desire-medium-bg: #eef0f1;
+  --desire-medium-fg: #5f6b70;
+  --desire-low-bg: #f3f4f6;
+  --desire-low-fg: #9ca3af;
 
   --radius: 0.75rem;
 }

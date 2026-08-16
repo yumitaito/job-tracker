@@ -2,31 +2,32 @@ import { Link } from "react-router-dom";
 import { FileText, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
-import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
+import {
+  JobListDesireLevelField,
+  JobListInterviewField,
+  JobListStatusField,
+  type JobListFieldUpdater,
+} from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobCard({
   job,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId = null,
 }: {
   job: Job;
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId?: string | null;
 }) {
-  const latestInterview = getLatestInterview(job);
   const isPastInterview = isJobInterviewPast(job);
-  const infoItems = [
-    latestInterview && {
-      label: INTERVIEW_STAGE_LABELS[latestInterview.stage],
-      value: formatDateTime(latestInterview.at),
-      valueClassName: getInterviewDateTimeClassName(latestInterview.at),
-    },
-    { label: "最終更新日", value: formatDate(job.updated_at), valueClassName: "whitespace-nowrap" },
-  ].filter((item): item is { label: string; value: string; valueClassName: string } => Boolean(item));
+  const isUpdating = updatingJobId === job.id;
 
   return (
     <div
@@ -43,22 +44,41 @@ export function JobCard({
             <p className="text-sm text-muted-foreground">{job.position}</p>
           </div>
         </Link>
-        <JobStatusBadge status={job.status} />
       </div>
 
       <TechnologyBadges technologies={job.technologies} />
 
-      <div
-        className={`grid gap-2 rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground ${
-          infoItems.length === 2 ? "grid-cols-2" : "grid-cols-1"
-        }`}
-      >
-        {infoItems.map((item) => (
-          <div key={item.label}>
-            <p className="font-semibold text-foreground">{item.label}</p>
-            <p className={item.valueClassName}>{item.value}</p>
+      <div className="space-y-3 rounded-xl bg-muted/60 px-3 py-3">
+        <JobListInterviewField
+          job={job}
+          onUpdate={onUpdateJob}
+          isUpdating={isUpdating}
+          compact
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-foreground">志望度</p>
+            <JobListDesireLevelField
+              job={job}
+              onUpdate={onUpdateJob}
+              isUpdating={isUpdating}
+              compact
+            />
           </div>
-        ))}
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-foreground">選考ステータス</p>
+            <JobListStatusField
+              job={job}
+              onUpdate={onUpdateJob}
+              isUpdating={isUpdating}
+              compact
+            />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-foreground">最終更新日</p>
+          <p className="text-xs text-muted-foreground">{formatDate(job.updated_at)}</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

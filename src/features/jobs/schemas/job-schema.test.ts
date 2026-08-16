@@ -8,6 +8,7 @@ const baseValues = {
   application_url: undefined,
   application_date: undefined,
   status: "not_applied" as const,
+  desire_level: "medium" as const,
   first_interview_at: undefined,
   second_interview_at: undefined,
   final_interview_at: undefined,

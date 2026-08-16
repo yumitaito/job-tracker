@@ -28,26 +28,35 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { JobDragHandle } from "@/features/jobs/components/JobDragHandle";
-import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
-import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
+import {
+  JobListDesireLevelField,
+  JobListInterviewField,
+  JobListStatusField,
+  type JobListFieldUpdater,
+} from "@/features/jobs/components/JobListInlineFields";
 import { JobTable } from "@/features/jobs/components/JobTable";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
+import { isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { reorderJobIds } from "@/features/jobs/lib/job-order";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import type { Job } from "@/features/jobs/types/job";
 
 function SortableJobTableRow({
   job,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId,
   reorderEnabled,
 }: {
   job: Job;
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId: string | null;
   reorderEnabled: boolean;
 }) {
-  const latestInterview = getLatestInterview(job);
   const isPastInterview = isJobInterviewPast(job);
+  const isUpdating = updatingJobId === job.id;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: job.id,
     disabled: !reorderEnabled,
@@ -77,7 +86,7 @@ function SortableJobTableRow({
           />
         </TableCell>
       )}
-      <TableCell>
+      <TableCell className="align-top py-4">
         <Link to={`/jobs/${job.id}`} className="flex items-center gap-3">
           <CompanyAvatar name={job.company_name} />
           <div className="space-y-1">
@@ -89,20 +98,14 @@ function SortableJobTableRow({
           </div>
         </Link>
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        {latestInterview ? (
-          <div>
-            <p className="font-bold text-foreground">
-              {INTERVIEW_STAGE_LABELS[latestInterview.stage]}
-            </p>
-            <p className={getInterviewDateTimeClassName(latestInterview.at)}>
-              {formatDateTime(latestInterview.at)}
-            </p>
-          </div>
-        ) : null}
+      <TableCell className="align-top py-4">
+        <JobListInterviewField job={job} onUpdate={onUpdateJob} isUpdating={isUpdating} />
       </TableCell>
-      <TableCell>
-        <JobStatusBadge status={job.status} />
+      <TableCell className="align-top py-4">
+        <JobListDesireLevelField job={job} onUpdate={onUpdateJob} isUpdating={isUpdating} />
+      </TableCell>
+      <TableCell className="align-top py-4">
+        <JobListStatusField job={job} onUpdate={onUpdateJob} isUpdating={isUpdating} />
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">{formatDate(job.updated_at)}</TableCell>
       <TableCell>
@@ -140,11 +143,15 @@ export function JobSortableTable({
   onReorder,
   reorderEnabled,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId = null,
 }: {
   jobs: Job[];
   onReorder: (orderedIds: string[]) => void;
   reorderEnabled: boolean;
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId?: string | null;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -162,7 +169,14 @@ export function JobSortableTable({
   };
 
   if (!reorderEnabled) {
-    return <JobTable jobs={jobs} onDeleteRequest={onDeleteRequest} />;
+    return (
+      <JobTable
+        jobs={jobs}
+        onDeleteRequest={onDeleteRequest}
+        onUpdateJob={onUpdateJob}
+        updatingJobId={updatingJobId}
+      />
+    );
   }
 
   return (
@@ -173,8 +187,9 @@ export function JobSortableTable({
             <TableRow>
               <TableHead className="w-12 px-2" aria-label="並び替え" />
               <TableHead>企業名 / 職種</TableHead>
-              <TableHead className="w-44">面接日時</TableHead>
-              <TableHead className="whitespace-nowrap">選考ステータス</TableHead>
+              <TableHead className="w-52">面接日時</TableHead>
+              <TableHead className="w-24 whitespace-nowrap">志望度</TableHead>
+              <TableHead className="min-w-40 whitespace-nowrap">選考ステータス</TableHead>
               <TableHead className="w-40">最終更新日</TableHead>
               <TableHead className="w-10" />
             </TableRow>
@@ -185,6 +200,8 @@ export function JobSortableTable({
                 key={job.id}
                 job={job}
                 onDeleteRequest={onDeleteRequest}
+                onUpdateJob={onUpdateJob}
+                updatingJobId={updatingJobId}
                 reorderEnabled={reorderEnabled}
               />
             ))}

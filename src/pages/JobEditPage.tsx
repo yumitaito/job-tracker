@@ -11,7 +11,7 @@ import { useJob } from "@/features/jobs/hooks/use-job";
 import { useUpdateJob } from "@/features/jobs/hooks/use-update-job";
 import { jobToFormValues } from "@/features/jobs/lib/job-mappers";
 import type { JobFormOutput } from "@/features/jobs/schemas/job-schema";
-import type { JobStatus, UpdateJobInput } from "@/features/jobs/types/job";
+import type { DesireLevel, JobStatus, UpdateJobInput } from "@/features/jobs/types/job";
 
 export default function JobEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -71,6 +71,7 @@ export default function JobEditPage() {
       application_url: values.application_url ?? null,
       application_date: values.application_date ?? null,
       status: values.status as JobStatus,
+      desire_level: values.desire_level as DesireLevel,
       first_interview_at: values.first_interview_at ?? null,
       second_interview_at: values.second_interview_at ?? null,
       final_interview_at: values.final_interview_at ?? null,
