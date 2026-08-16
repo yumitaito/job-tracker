@@ -15,9 +15,8 @@ export function JobListSkeleton() {
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-3 w-56" />
             </div>
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-6 w-20 rounded-full" />
             <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-6 w-20 rounded-full" />
             <Skeleton className="h-4 w-20" />
           </div>
         ))}

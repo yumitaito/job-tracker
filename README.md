@@ -87,6 +87,9 @@ npm install
    - Web Push 通知を使う場合：
      [`supabase/migrations/0005_add_push_subscriptions.sql`](supabase/migrations/0005_add_push_subscriptions.sql) を実行
      （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
+   - 一覧の手動並び替え（ドラッグ&ドロップ）を使う場合：
+     [`supabase/migrations/0006_add_display_order.sql`](supabase/migrations/0006_add_display_order.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -238,6 +241,7 @@ create table public.jobs (
   notes text,
   min_salary integer,
   max_salary integer,
+  display_order integer not null default 0, -- 一覧の手動並び替え順（ユーザーごと）
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint jobs_status_check check (status in (

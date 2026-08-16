@@ -4,14 +4,15 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card } from "@/components/ui/card";
 import { JobListHero } from "@/features/jobs/components/JobListHero";
 import { JobFilterBar } from "@/features/jobs/components/JobFilterBar";
-import { JobTable } from "@/features/jobs/components/JobTable";
-import { JobCard } from "@/features/jobs/components/JobCard";
+import { JobSortableCardList } from "@/features/jobs/components/JobSortableCardList";
+import { JobSortableTable } from "@/features/jobs/components/JobSortableTable";
 import { JobListSkeleton } from "@/features/jobs/components/JobListSkeleton";
 import { EmptyJobsState } from "@/features/jobs/components/EmptyJobsState";
 import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
+import { useReorderJobs } from "@/features/jobs/hooks/use-reorder-jobs";
 import { JOB_STATUSES } from "@/features/jobs/types/job";
 import type { Job, JobSortOption, JobStatusFilter } from "@/features/jobs/types/job";
 
@@ -22,6 +23,9 @@ export default function JobListPage() {
 
   const { data: jobs, isPending, isError, error, refetch } = useJobs(sort);
   const deleteJob = useDeleteJob();
+  const reorderJobs = useReorderJobs(sort);
+
+  const canReorder = status === "all" && sort === "display_order_asc";
 
   const counts = useMemo(() => {
     const base = { all: 0 } as Record<JobStatusFilter, number>;
@@ -47,6 +51,10 @@ export default function JobListPage() {
     });
   };
 
+  const handleReorder = (orderedIds: string[]) => {
+    reorderJobs.mutate(orderedIds);
+  };
+
   return (
     <PageContainer className="space-y-6">
       <AppHeader />
@@ -60,6 +68,18 @@ export default function JobListPage() {
           sort={sort}
           onSortChange={setSort}
         />
+
+        {status === "all" && sort !== "display_order_asc" && filteredJobs.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            カードの並び替えを行うには、並び順で「カスタム順」を選んでください。
+          </p>
+        )}
+
+        {status !== "all" && (jobs?.length ?? 0) > 0 && (
+          <p className="text-sm text-muted-foreground">
+            並び替えは「すべて」表示のときのみ利用できます。
+          </p>
+        )}
 
         <Card className="overflow-hidden">
           {isPending && <JobListSkeleton />}
@@ -77,12 +97,20 @@ export default function JobListPage() {
           {!isPending && !isError && filteredJobs.length > 0 && (
             <>
               <div className="hidden md:block">
-                <JobTable jobs={filteredJobs} onDeleteRequest={setJobPendingDelete} />
+                <JobSortableTable
+                  jobs={filteredJobs}
+                  reorderEnabled={canReorder}
+                  onReorder={handleReorder}
+                  onDeleteRequest={setJobPendingDelete}
+                />
               </div>
-              <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
-                {filteredJobs.map((job) => (
-                  <JobCard key={job.id} job={job} onDeleteRequest={setJobPendingDelete} />
-                ))}
+              <div className="p-4 md:hidden">
+                <JobSortableCardList
+                  jobs={filteredJobs}
+                  reorderEnabled={canReorder}
+                  onReorder={handleReorder}
+                  onDeleteRequest={setJobPendingDelete}
+                />
               </div>
             </>
           )}

@@ -47,6 +47,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     notes: null,
     min_salary: null,
     max_salary: null,
+    display_order: 0,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,

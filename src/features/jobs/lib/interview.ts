@@ -63,3 +63,59 @@ export function getLatestInterview(job: Job): LatestInterview | null {
   if (job.first_interview_at) return { stage: "first_interview", at: job.first_interview_at };
   return null;
 }
+
+type InterviewProximitySortKey = {
+  /** 0=未来の面接あり, 1=過去のみ, 2=未設定 */
+  bucket: 0 | 1 | 2;
+  /** bucket内での並び替え用タイムスタンプ（ms） */
+  timestamp: number;
+};
+
+function parseInterviewTimestamp(at: string): number | null {
+  const timestamp = new Date(at).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+/** 面接日時が近い順の並び替えキーを返す。 */
+export function getInterviewProximitySortKey(
+  job: Job,
+  now: Date = new Date(),
+): InterviewProximitySortKey {
+  const nowMs = now.getTime();
+  const upcomingTimestamps = getJobInterviews(job)
+    .map((interview) => parseInterviewTimestamp(interview.at))
+    .filter((timestamp): timestamp is number => timestamp !== null && timestamp > nowMs)
+    .sort((a, b) => a - b);
+
+  if (upcomingTimestamps.length > 0) {
+    return { bucket: 0, timestamp: upcomingTimestamps[0] };
+  }
+
+  const latestInterview = getLatestInterview(job);
+  if (latestInterview) {
+    const timestamp = parseInterviewTimestamp(latestInterview.at);
+    if (timestamp !== null) {
+      return { bucket: 1, timestamp };
+    }
+  }
+
+  return { bucket: 2, timestamp: Number.MAX_SAFE_INTEGER };
+}
+
+/** 面接日時が近い順で求人を並び替える（元の配列は変更しない）。 */
+export function sortJobsByUpcomingInterview(jobs: Job[], now: Date = new Date()): Job[] {
+  return [...jobs].sort((left, right) => {
+    const leftKey = getInterviewProximitySortKey(left, now);
+    const rightKey = getInterviewProximitySortKey(right, now);
+
+    if (leftKey.bucket !== rightKey.bucket) {
+      return leftKey.bucket - rightKey.bucket;
+    }
+
+    if (leftKey.timestamp !== rightKey.timestamp) {
+      return leftKey.timestamp - rightKey.timestamp;
+    }
+
+    return left.company_name.localeCompare(right.company_name, "ja");
+  });
+}

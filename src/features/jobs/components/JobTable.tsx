@@ -28,9 +28,8 @@ export function JobTable({
       <TableHeader>
         <TableRow>
           <TableHead>企業名 / 職種</TableHead>
-          <TableHead className="w-40">応募日</TableHead>
-          <TableHead className="whitespace-nowrap">選考ステータス</TableHead>
           <TableHead className="w-44">面接日時</TableHead>
+          <TableHead className="whitespace-nowrap">選考ステータス</TableHead>
           <TableHead className="w-40">最終更新日</TableHead>
           <TableHead className="w-10" />
         </TableRow>
@@ -53,12 +52,6 @@ export function JobTable({
                 </Link>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {job.application_date ? formatDate(job.application_date) : null}
-              </TableCell>
-              <TableCell>
-                <JobStatusBadge status={job.status} />
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
                 {latestInterview ? (
                   <div>
                     <p className="font-bold text-foreground">
@@ -75,6 +68,9 @@ export function JobTable({
                     </p>
                   </div>
                 ) : null}
+              </TableCell>
+              <TableCell>
+                <JobStatusBadge status={job.status} />
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {formatDate(job.updated_at)}
