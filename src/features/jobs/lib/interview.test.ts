@@ -8,6 +8,8 @@ import {
   getMinutesUntilInterview,
   INTERVIEW_STAGE_LABELS,
   isFiveMinutesBeforeInterview,
+  isInterviewPast,
+  isJobInterviewPast,
   sortJobsByUpcomingInterview,
 } from "./interview";
 
@@ -197,7 +199,7 @@ describe("sortJobsByUpcomingInterview", () => {
     ]);
   });
 
-  it("過去の面接も現在時刻に近い順で並ぶ", () => {
+  it("過去の面接を未来より上に並べ、各グループ内は近い順に並ぶ", () => {
     const jobs = [
       createTestJob({
         id: "job-none",
@@ -226,9 +228,9 @@ describe("sortJobsByUpcomingInterview", () => {
     ];
 
     expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
-      "job-upcoming",
       "job-recent-past",
       "job-old-past",
+      "job-upcoming",
       "job-far-future",
       "job-none",
     ]);
@@ -255,23 +257,49 @@ describe("sortJobsByUpcomingInterview", () => {
   });
 });
 
+describe("isInterviewPast", () => {
+  it("面接日時が現在より前ならtrue", () => {
+    const now = new Date("2026-08-16T10:00:00.000Z");
+    expect(isInterviewPast("2026-08-15T10:00:00.000Z", now)).toBe(true);
+  });
+
+  it("面接日時が現在以降ならfalse", () => {
+    const now = new Date("2026-08-16T10:00:00.000Z");
+    expect(isInterviewPast("2026-08-16T10:00:00.000Z", now)).toBe(false);
+    expect(isInterviewPast("2026-08-17T10:00:00.000Z", now)).toBe(false);
+  });
+});
+
+describe("isJobInterviewPast", () => {
+  it("一覧表示の面接日時が終了していればtrue", () => {
+    const now = new Date("2026-08-16T10:00:00.000Z");
+    const job = createTestJob({ first_interview_at: "2026-08-10T10:00:00.000Z" });
+    expect(isJobInterviewPast(job, now)).toBe(true);
+  });
+
+  it("面接日時未設定ならfalse", () => {
+    const now = new Date("2026-08-16T10:00:00.000Z");
+    expect(isJobInterviewPast(createTestJob(), now)).toBe(false);
+  });
+});
+
 describe("getInterviewProximitySortKey", () => {
   const now = new Date("2026-08-16T10:00:00.000Z");
 
-  it("面接日時がある求人は現在時刻からの距離を返す", () => {
+  it("未来の面接は timing=1 になる", () => {
     const job = createTestJob({ first_interview_at: "2026-08-17T10:00:00.000Z" });
     expect(getInterviewProximitySortKey(job, now)).toEqual({
       hasInterview: true,
-      distance: 24 * 60 * 60 * 1000,
+      timing: 1,
       timestamp: new Date("2026-08-17T10:00:00.000Z").getTime(),
     });
   });
 
-  it("過去の面接日時も距離ベースで評価する", () => {
+  it("過去の面接は timing=0 になる", () => {
     const job = createTestJob({ first_interview_at: "2026-08-15T10:00:00.000Z" });
     expect(getInterviewProximitySortKey(job, now)).toEqual({
       hasInterview: true,
-      distance: 24 * 60 * 60 * 1000,
+      timing: 0,
       timestamp: new Date("2026-08-15T10:00:00.000Z").getTime(),
     });
   });

@@ -41,6 +41,20 @@ export function getMinutesUntilInterview(
   return remainingMs / 60_000;
 }
 
+/** 面接日時が現在時刻より前かどうか。 */
+export function isInterviewPast(at: string, now: Date = new Date()): boolean {
+  const interviewAt = new Date(at);
+  if (Number.isNaN(interviewAt.getTime())) return false;
+  return interviewAt.getTime() < now.getTime();
+}
+
+/** 一覧表示中の面接日時（最新段階）が終了しているかどうか。 */
+export function isJobInterviewPast(job: Job, now: Date = new Date()): boolean {
+  const latestInterview = getLatestInterview(job);
+  if (!latestInterview) return false;
+  return isInterviewPast(latestInterview.at, now);
+}
+
 /** 面接開始まであと5分になったタイミングかどうか（4分超〜5分以下）。 */
 export function isFiveMinutesBeforeInterview(
   at: string,
@@ -67,8 +81,8 @@ export function getLatestInterview(job: Job): LatestInterview | null {
 type InterviewProximitySortKey = {
   /** 面接日時が設定されているか */
   hasInterview: boolean;
-  /** 現在時刻からの距離（ms）。未設定は Infinity */
-  distance: number;
+  /** 0=過去, 1=未来 */
+  timing: 0 | 1;
   /** 面接日時のタイムスタンプ（ms）。未設定は Infinity */
   timestamp: number;
 };
@@ -85,17 +99,19 @@ export function getInterviewProximitySortKey(
 ): InterviewProximitySortKey {
   const latestInterview = getLatestInterview(job);
   if (!latestInterview) {
-    return { hasInterview: false, distance: Number.MAX_SAFE_INTEGER, timestamp: Number.MAX_SAFE_INTEGER };
+    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
   }
 
   const timestamp = parseInterviewTimestamp(latestInterview.at);
   if (timestamp === null) {
-    return { hasInterview: false, distance: Number.MAX_SAFE_INTEGER, timestamp: Number.MAX_SAFE_INTEGER };
+    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
   }
+
+  const nowMs = now.getTime();
 
   return {
     hasInterview: true,
-    distance: Math.abs(timestamp - now.getTime()),
+    timing: timestamp < nowMs ? 0 : 1,
     timestamp,
   };
 }
@@ -103,7 +119,6 @@ export function getInterviewProximitySortKey(
 function compareInterviewProximitySortKeys(
   left: InterviewProximitySortKey,
   right: InterviewProximitySortKey,
-  nowMs: number,
 ): number {
   if (left.hasInterview !== right.hasInterview) {
     return left.hasInterview ? -1 : 1;
@@ -113,31 +128,23 @@ function compareInterviewProximitySortKeys(
     return 0;
   }
 
-  if (left.distance !== right.distance) {
-    return left.distance - right.distance;
+  if (left.timing !== right.timing) {
+    return left.timing - right.timing;
   }
 
-  const leftIsUpcoming = left.timestamp >= nowMs;
-  const rightIsUpcoming = right.timestamp >= nowMs;
-  if (leftIsUpcoming !== rightIsUpcoming) {
-    return leftIsUpcoming ? -1 : 1;
+  if (left.timing === 0) {
+    return right.timestamp - left.timestamp;
   }
 
-  if (left.timestamp !== right.timestamp) {
-    return left.timestamp - right.timestamp;
-  }
-
-  return 0;
+  return left.timestamp - right.timestamp;
 }
 
 /** 面接日時が近い順で求人を並び替える（元の配列は変更しない）。 */
 export function sortJobsByUpcomingInterview(jobs: Job[], now: Date = new Date()): Job[] {
-  const nowMs = now.getTime();
-
   return [...jobs].sort((left, right) => {
     const leftKey = getInterviewProximitySortKey(left, now);
     const rightKey = getInterviewProximitySortKey(right, now);
-    const keyComparison = compareInterviewProximitySortKeys(leftKey, rightKey, nowMs);
+    const keyComparison = compareInterviewProximitySortKeys(leftKey, rightKey);
 
     if (keyComparison !== 0) {
       return keyComparison;
