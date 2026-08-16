@@ -10,15 +10,15 @@ import { JobListSkeleton } from "@/features/jobs/components/JobListSkeleton";
 import { EmptyJobsState } from "@/features/jobs/components/EmptyJobsState";
 import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
+import { useJobListFilters } from "@/features/jobs/hooks/use-job-list-filters";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
 import { useReorderJobs } from "@/features/jobs/hooks/use-reorder-jobs";
 import { JOB_STATUSES } from "@/features/jobs/types/job";
-import type { Job, JobSortOption, JobStatusFilter } from "@/features/jobs/types/job";
+import type { Job, JobStatusFilter } from "@/features/jobs/types/job";
 
 export default function JobListPage() {
-  const [status, setStatus] = useState<JobStatusFilter>("all");
-  const [sort, setSort] = useState<JobSortOption>("application_date_desc");
+  const { status, setStatus, sort, setSort } = useJobListFilters();
   const [jobPendingDelete, setJobPendingDelete] = useState<Job | null>(null);
 
   const { data: jobs, isPending, isError, error, refetch } = useJobs(sort);
