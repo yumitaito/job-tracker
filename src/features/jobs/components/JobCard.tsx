@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
-import { formatDate, formatDateTime, isToday } from "@/lib/format";
+import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { formatDate, formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobCard({
@@ -16,17 +18,23 @@ export function JobCard({
   onDeleteRequest: (job: Job) => void;
 }) {
   const latestInterview = getLatestInterview(job);
+  const isPastInterview = isJobInterviewPast(job);
   const infoItems = [
     latestInterview && {
       label: INTERVIEW_STAGE_LABELS[latestInterview.stage],
       value: formatDateTime(latestInterview.at),
-      isToday: isToday(latestInterview.at),
+      valueClassName: getInterviewDateTimeClassName(latestInterview.at),
     },
-    { label: "最終更新日", value: formatDate(job.updated_at) },
-  ].filter((item): item is { label: string; value: string; isToday?: boolean } => Boolean(item));
+    { label: "最終更新日", value: formatDate(job.updated_at), valueClassName: "whitespace-nowrap" },
+  ].filter((item): item is { label: string; value: string; valueClassName: string } => Boolean(item));
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <div
+      className={cn(
+        "space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm",
+        getPastInterviewSurfaceClassName(isPastInterview),
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <Link to={`/jobs/${job.id}`} className="flex flex-1 items-center gap-3 min-w-0">
           <CompanyAvatar name={job.company_name} />
@@ -48,13 +56,7 @@ export function JobCard({
         {infoItems.map((item) => (
           <div key={item.label}>
             <p className="font-semibold text-foreground">{item.label}</p>
-            <p
-              className={
-                item.isToday ? "whitespace-nowrap font-bold text-destructive" : "whitespace-nowrap"
-              }
-            >
-              {item.value}
-            </p>
+            <p className={item.valueClassName}>{item.value}</p>
           </div>
         ))}
       </div>

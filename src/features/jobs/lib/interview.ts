@@ -41,6 +41,20 @@ export function getMinutesUntilInterview(
   return remainingMs / 60_000;
 }
 
+/** 面接日時が現在時刻より前かどうか。 */
+export function isInterviewPast(at: string, now: Date = new Date()): boolean {
+  const interviewAt = new Date(at);
+  if (Number.isNaN(interviewAt.getTime())) return false;
+  return interviewAt.getTime() < now.getTime();
+}
+
+/** 一覧表示中の面接日時（最新段階）が終了しているかどうか。 */
+export function isJobInterviewPast(job: Job, now: Date = new Date()): boolean {
+  const latestInterview = getLatestInterview(job);
+  if (!latestInterview) return false;
+  return isInterviewPast(latestInterview.at, now);
+}
+
 /** 面接開始まであと5分になったタイミングかどうか（4分超〜5分以下）。 */
 export function isFiveMinutesBeforeInterview(
   at: string,
@@ -65,9 +79,11 @@ export function getLatestInterview(job: Job): LatestInterview | null {
 }
 
 type InterviewProximitySortKey = {
-  /** 0=未来の面接あり, 1=過去のみ, 2=未設定 */
-  bucket: 0 | 1 | 2;
-  /** bucket内での並び替え用タイムスタンプ（ms） */
+  /** 面接日時が設定されているか */
+  hasInterview: boolean;
+  /** 0=過去, 1=未来 */
+  timing: 0 | 1;
+  /** 面接日時のタイムスタンプ（ms）。未設定は Infinity */
   timestamp: number;
 };
 
@@ -81,25 +97,46 @@ export function getInterviewProximitySortKey(
   job: Job,
   now: Date = new Date(),
 ): InterviewProximitySortKey {
-  const nowMs = now.getTime();
-  const upcomingTimestamps = getJobInterviews(job)
-    .map((interview) => parseInterviewTimestamp(interview.at))
-    .filter((timestamp): timestamp is number => timestamp !== null && timestamp > nowMs)
-    .sort((a, b) => a - b);
-
-  if (upcomingTimestamps.length > 0) {
-    return { bucket: 0, timestamp: upcomingTimestamps[0] };
-  }
-
   const latestInterview = getLatestInterview(job);
-  if (latestInterview) {
-    const timestamp = parseInterviewTimestamp(latestInterview.at);
-    if (timestamp !== null) {
-      return { bucket: 1, timestamp };
-    }
+  if (!latestInterview) {
+    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
   }
 
-  return { bucket: 2, timestamp: Number.MAX_SAFE_INTEGER };
+  const timestamp = parseInterviewTimestamp(latestInterview.at);
+  if (timestamp === null) {
+    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
+  }
+
+  const nowMs = now.getTime();
+
+  return {
+    hasInterview: true,
+    timing: timestamp < nowMs ? 0 : 1,
+    timestamp,
+  };
+}
+
+function compareInterviewProximitySortKeys(
+  left: InterviewProximitySortKey,
+  right: InterviewProximitySortKey,
+): number {
+  if (left.hasInterview !== right.hasInterview) {
+    return left.hasInterview ? -1 : 1;
+  }
+
+  if (!left.hasInterview) {
+    return 0;
+  }
+
+  if (left.timing !== right.timing) {
+    return left.timing - right.timing;
+  }
+
+  if (left.timing === 0) {
+    return right.timestamp - left.timestamp;
+  }
+
+  return left.timestamp - right.timestamp;
 }
 
 /** 面接日時が近い順で求人を並び替える（元の配列は変更しない）。 */
@@ -107,13 +144,10 @@ export function sortJobsByUpcomingInterview(jobs: Job[], now: Date = new Date())
   return [...jobs].sort((left, right) => {
     const leftKey = getInterviewProximitySortKey(left, now);
     const rightKey = getInterviewProximitySortKey(right, now);
+    const keyComparison = compareInterviewProximitySortKeys(leftKey, rightKey);
 
-    if (leftKey.bucket !== rightKey.bucket) {
-      return leftKey.bucket - rightKey.bucket;
-    }
-
-    if (leftKey.timestamp !== rightKey.timestamp) {
-      return leftKey.timestamp - rightKey.timestamp;
+    if (keyComparison !== 0) {
+      return keyComparison;
     }
 
     return left.company_name.localeCompare(right.company_name, "ja");

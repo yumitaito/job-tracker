@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
-import { formatDate, formatDateTime, isToday } from "@/lib/format";
+import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { formatDate, formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
 export function JobTable({
@@ -37,8 +39,9 @@ export function JobTable({
       <TableBody>
         {jobs.map((job) => {
           const latestInterview = getLatestInterview(job);
+          const isPastInterview = isJobInterviewPast(job);
           return (
-            <TableRow key={job.id} className="group">
+            <TableRow key={job.id} className={cn("group", getPastInterviewSurfaceClassName(isPastInterview))}>
               <TableCell>
                 <Link to={`/jobs/${job.id}`} className="flex items-center gap-3">
                   <CompanyAvatar name={job.company_name} />
@@ -57,13 +60,7 @@ export function JobTable({
                     <p className="font-bold text-foreground">
                       {INTERVIEW_STAGE_LABELS[latestInterview.stage]}
                     </p>
-                    <p
-                      className={
-                        isToday(latestInterview.at)
-                          ? "whitespace-nowrap font-bold text-destructive"
-                          : "whitespace-nowrap"
-                      }
-                    >
+                    <p className={getInterviewDateTimeClassName(latestInterview.at)}>
                       {formatDateTime(latestInterview.at)}
                     </p>
                   </div>

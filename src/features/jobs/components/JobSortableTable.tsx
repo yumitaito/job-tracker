@@ -31,9 +31,10 @@ import { JobDragHandle } from "@/features/jobs/components/JobDragHandle";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { JobTable } from "@/features/jobs/components/JobTable";
-import { getLatestInterview, INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
+import { getLatestInterview, INTERVIEW_STAGE_LABELS, isJobInterviewPast } from "@/features/jobs/lib/interview";
+import { getInterviewDateTimeClassName, getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { reorderJobIds } from "@/features/jobs/lib/job-order";
-import { formatDate, formatDateTime, isToday } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import type { Job } from "@/features/jobs/types/job";
 
 function SortableJobTableRow({
@@ -46,6 +47,7 @@ function SortableJobTableRow({
   reorderEnabled: boolean;
 }) {
   const latestInterview = getLatestInterview(job);
+  const isPastInterview = isJobInterviewPast(job);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: job.id,
     disabled: !reorderEnabled,
@@ -60,7 +62,11 @@ function SortableJobTableRow({
     <TableRow
       ref={setNodeRef}
       style={style}
-      className={cn("group", isDragging && "relative z-10 bg-muted/40 shadow-md")}
+      className={cn(
+        "group",
+        getPastInterviewSurfaceClassName(isPastInterview),
+        isDragging && "relative z-10 bg-muted/40 shadow-md",
+      )}
     >
       {reorderEnabled && (
         <TableCell className="w-12 px-2">
@@ -89,13 +95,7 @@ function SortableJobTableRow({
             <p className="font-bold text-foreground">
               {INTERVIEW_STAGE_LABELS[latestInterview.stage]}
             </p>
-            <p
-              className={
-                isToday(latestInterview.at)
-                  ? "whitespace-nowrap font-bold text-destructive"
-                  : "whitespace-nowrap"
-              }
-            >
+            <p className={getInterviewDateTimeClassName(latestInterview.at)}>
               {formatDateTime(latestInterview.at)}
             </p>
           </div>
