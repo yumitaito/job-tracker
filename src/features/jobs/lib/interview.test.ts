@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "@/features/jobs/types/job";
 import {
+  getInterviewProximitySortKey,
   getInterviewReminderKey,
   getJobInterviews,
   getLatestInterview,
   getMinutesUntilInterview,
   INTERVIEW_STAGE_LABELS,
   isFiveMinutesBeforeInterview,
+  sortJobsByUpcomingInterview,
 } from "./interview";
 
 /** テスト用の`Job`オブジェクトを生成するファクトリ関数。必要なフィールドのみoverridesで上書きする。 */
@@ -28,6 +30,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     notes: null,
     min_salary: null,
     max_salary: null,
+    display_order: 0,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -147,5 +150,107 @@ describe("getMinutesUntilInterview", () => {
     const now = new Date(interviewAt.getTime() - 5 * 60_000);
 
     expect(getMinutesUntilInterview(interviewAt.toISOString(), now)).toBe(5);
+  });
+});
+
+describe("sortJobsByUpcomingInterview", () => {
+  const now = new Date("2026-08-16T10:00:00.000Z");
+
+  it("未来の面接が近い順に並ぶ", () => {
+    const jobs = [
+      createTestJob({
+        id: "job-far",
+        company_name: "B社",
+        first_interview_at: "2026-08-20T10:00:00.000Z",
+      }),
+      createTestJob({
+        id: "job-soon",
+        company_name: "A社",
+        first_interview_at: "2026-08-17T10:00:00.000Z",
+      }),
+    ];
+
+    expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
+      "job-soon",
+      "job-far",
+    ]);
+  });
+
+  it("複数段階の面接がある場合は最も近い未来の面接日時で並ぶ", () => {
+    const jobs = [
+      createTestJob({
+        id: "job-later-stage",
+        company_name: "B社",
+        first_interview_at: "2026-08-10T10:00:00.000Z",
+        second_interview_at: "2026-08-25T10:00:00.000Z",
+      }),
+      createTestJob({
+        id: "job-sooner-first",
+        company_name: "A社",
+        first_interview_at: "2026-08-18T10:00:00.000Z",
+      }),
+    ];
+
+    expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
+      "job-sooner-first",
+      "job-later-stage",
+    ]);
+  });
+
+  it("未来の面接がない求人は後ろに並ぶ", () => {
+    const jobs = [
+      createTestJob({
+        id: "job-none",
+        company_name: "C社",
+      }),
+      createTestJob({
+        id: "job-past",
+        company_name: "B社",
+        first_interview_at: "2026-08-10T10:00:00.000Z",
+      }),
+      createTestJob({
+        id: "job-upcoming",
+        company_name: "A社",
+        first_interview_at: "2026-08-17T10:00:00.000Z",
+      }),
+    ];
+
+    expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
+      "job-upcoming",
+      "job-past",
+      "job-none",
+    ]);
+  });
+
+  it("同じ並び順の場合は企業名で並ぶ", () => {
+    const jobs = [
+      createTestJob({
+        id: "job-b",
+        company_name: "B社",
+        first_interview_at: "2026-08-17T10:00:00.000Z",
+      }),
+      createTestJob({
+        id: "job-a",
+        company_name: "A社",
+        first_interview_at: "2026-08-17T10:00:00.000Z",
+      }),
+    ];
+
+    expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
+      "job-a",
+      "job-b",
+    ]);
+  });
+});
+
+describe("getInterviewProximitySortKey", () => {
+  const now = new Date("2026-08-16T10:00:00.000Z");
+
+  it("未来の面接がある求人はbucket 0になる", () => {
+    const job = createTestJob({ first_interview_at: "2026-08-17T10:00:00.000Z" });
+    expect(getInterviewProximitySortKey(job, now)).toEqual({
+      bucket: 0,
+      timestamp: new Date("2026-08-17T10:00:00.000Z").getTime(),
+    });
   });
 });

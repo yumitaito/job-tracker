@@ -22,6 +22,7 @@ type JobRow = {
   notes: string | null;
   min_salary: number | null;
   max_salary: number | null;
+  display_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -44,6 +45,7 @@ type JobInsert = {
   notes?: string | null;
   min_salary?: number | null;
   max_salary?: number | null;
+  display_order?: number;
   created_at?: string;
   updated_at?: string;
 };

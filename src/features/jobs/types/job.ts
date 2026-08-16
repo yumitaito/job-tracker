@@ -49,6 +49,7 @@ export type Job = {
   notes: string | null;
   min_salary: number | null;
   max_salary: number | null;
+  display_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -75,6 +76,8 @@ export type CreateJobInput = {
 export type UpdateJobInput = Partial<CreateJobInput>;
 
 export type JobSortOption =
+  | "display_order_asc"
+  | "interview_at_asc"
   | "application_date_desc"
   | "application_date_asc"
   | "updated_at_desc"
@@ -82,6 +85,8 @@ export type JobSortOption =
   | "company_name_asc";
 
 export const JOB_SORT_LABELS: Record<JobSortOption, string> = {
+  display_order_asc: "カスタム順",
+  interview_at_asc: "面接日時が近い順",
   application_date_desc: "応募日が新しい順",
   application_date_asc: "応募日が古い順",
   updated_at_desc: "更新日が新しい順",

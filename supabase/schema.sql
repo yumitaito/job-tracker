@@ -24,6 +24,7 @@ create table if not exists public.jobs (
   notes text,
   min_salary integer,
   max_salary integer,
+  display_order integer not null default 0, -- 一覧の手動並び替え順（ユーザーごと）
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint jobs_status_check check (status in (
@@ -44,6 +45,7 @@ create table if not exists public.jobs (
 create index if not exists jobs_status_idx on public.jobs (status);
 create index if not exists jobs_application_date_idx on public.jobs (application_date);
 create index if not exists jobs_user_id_idx on public.jobs (user_id);
+create index if not exists jobs_user_id_display_order_idx on public.jobs (user_id, display_order);
 
 -- updated_atを更新のたびに自動更新するtrigger
 create or replace function public.set_updated_at()

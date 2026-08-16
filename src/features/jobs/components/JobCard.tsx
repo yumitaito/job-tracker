@@ -17,7 +17,6 @@ export function JobCard({
 }) {
   const latestInterview = getLatestInterview(job);
   const infoItems = [
-    job.application_date && { label: "応募日", value: formatDate(job.application_date) },
     latestInterview && {
       label: INTERVIEW_STAGE_LABELS[latestInterview.stage],
       value: formatDateTime(latestInterview.at),
