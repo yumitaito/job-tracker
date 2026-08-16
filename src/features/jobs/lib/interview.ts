@@ -65,9 +65,11 @@ export function getLatestInterview(job: Job): LatestInterview | null {
 }
 
 type InterviewProximitySortKey = {
-  /** 0=未来の面接あり, 1=過去のみ, 2=未設定 */
-  bucket: 0 | 1 | 2;
-  /** bucket内での並び替え用タイムスタンプ（ms） */
+  /** 面接日時が設定されているか */
+  hasInterview: boolean;
+  /** 現在時刻からの距離（ms）。未設定は Infinity */
+  distance: number;
+  /** 面接日時のタイムスタンプ（ms）。未設定は Infinity */
   timestamp: number;
 };
 
@@ -81,39 +83,64 @@ export function getInterviewProximitySortKey(
   job: Job,
   now: Date = new Date(),
 ): InterviewProximitySortKey {
-  const nowMs = now.getTime();
-  const upcomingTimestamps = getJobInterviews(job)
-    .map((interview) => parseInterviewTimestamp(interview.at))
-    .filter((timestamp): timestamp is number => timestamp !== null && timestamp > nowMs)
-    .sort((a, b) => a - b);
-
-  if (upcomingTimestamps.length > 0) {
-    return { bucket: 0, timestamp: upcomingTimestamps[0] };
-  }
-
   const latestInterview = getLatestInterview(job);
-  if (latestInterview) {
-    const timestamp = parseInterviewTimestamp(latestInterview.at);
-    if (timestamp !== null) {
-      return { bucket: 1, timestamp };
-    }
+  if (!latestInterview) {
+    return { hasInterview: false, distance: Number.MAX_SAFE_INTEGER, timestamp: Number.MAX_SAFE_INTEGER };
   }
 
-  return { bucket: 2, timestamp: Number.MAX_SAFE_INTEGER };
+  const timestamp = parseInterviewTimestamp(latestInterview.at);
+  if (timestamp === null) {
+    return { hasInterview: false, distance: Number.MAX_SAFE_INTEGER, timestamp: Number.MAX_SAFE_INTEGER };
+  }
+
+  return {
+    hasInterview: true,
+    distance: Math.abs(timestamp - now.getTime()),
+    timestamp,
+  };
+}
+
+function compareInterviewProximitySortKeys(
+  left: InterviewProximitySortKey,
+  right: InterviewProximitySortKey,
+  nowMs: number,
+): number {
+  if (left.hasInterview !== right.hasInterview) {
+    return left.hasInterview ? -1 : 1;
+  }
+
+  if (!left.hasInterview) {
+    return 0;
+  }
+
+  if (left.distance !== right.distance) {
+    return left.distance - right.distance;
+  }
+
+  const leftIsUpcoming = left.timestamp >= nowMs;
+  const rightIsUpcoming = right.timestamp >= nowMs;
+  if (leftIsUpcoming !== rightIsUpcoming) {
+    return leftIsUpcoming ? -1 : 1;
+  }
+
+  if (left.timestamp !== right.timestamp) {
+    return left.timestamp - right.timestamp;
+  }
+
+  return 0;
 }
 
 /** 面接日時が近い順で求人を並び替える（元の配列は変更しない）。 */
 export function sortJobsByUpcomingInterview(jobs: Job[], now: Date = new Date()): Job[] {
+  const nowMs = now.getTime();
+
   return [...jobs].sort((left, right) => {
     const leftKey = getInterviewProximitySortKey(left, now);
     const rightKey = getInterviewProximitySortKey(right, now);
+    const keyComparison = compareInterviewProximitySortKeys(leftKey, rightKey, nowMs);
 
-    if (leftKey.bucket !== rightKey.bucket) {
-      return leftKey.bucket - rightKey.bucket;
-    }
-
-    if (leftKey.timestamp !== rightKey.timestamp) {
-      return leftKey.timestamp - rightKey.timestamp;
+    if (keyComparison !== 0) {
+      return keyComparison;
     }
 
     return left.company_name.localeCompare(right.company_name, "ja");

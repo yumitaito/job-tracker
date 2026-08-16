@@ -197,27 +197,39 @@ describe("sortJobsByUpcomingInterview", () => {
     ]);
   });
 
-  it("未来の面接がない求人は後ろに並ぶ", () => {
+  it("過去の面接も現在時刻に近い順で並ぶ", () => {
     const jobs = [
       createTestJob({
         id: "job-none",
         company_name: "C社",
       }),
       createTestJob({
-        id: "job-past",
+        id: "job-far-future",
+        company_name: "D社",
+        first_interview_at: "2026-08-25T10:00:00.000Z",
+      }),
+      createTestJob({
+        id: "job-recent-past",
         company_name: "B社",
-        first_interview_at: "2026-08-10T10:00:00.000Z",
+        first_interview_at: "2026-08-15T10:00:00.000Z",
       }),
       createTestJob({
         id: "job-upcoming",
         company_name: "A社",
         first_interview_at: "2026-08-17T10:00:00.000Z",
       }),
+      createTestJob({
+        id: "job-old-past",
+        company_name: "E社",
+        first_interview_at: "2026-08-10T10:00:00.000Z",
+      }),
     ];
 
     expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
       "job-upcoming",
-      "job-past",
+      "job-recent-past",
+      "job-old-past",
+      "job-far-future",
       "job-none",
     ]);
   });
@@ -246,11 +258,21 @@ describe("sortJobsByUpcomingInterview", () => {
 describe("getInterviewProximitySortKey", () => {
   const now = new Date("2026-08-16T10:00:00.000Z");
 
-  it("未来の面接がある求人はbucket 0になる", () => {
+  it("面接日時がある求人は現在時刻からの距離を返す", () => {
     const job = createTestJob({ first_interview_at: "2026-08-17T10:00:00.000Z" });
     expect(getInterviewProximitySortKey(job, now)).toEqual({
-      bucket: 0,
+      hasInterview: true,
+      distance: 24 * 60 * 60 * 1000,
       timestamp: new Date("2026-08-17T10:00:00.000Z").getTime(),
+    });
+  });
+
+  it("過去の面接日時も距離ベースで評価する", () => {
+    const job = createTestJob({ first_interview_at: "2026-08-15T10:00:00.000Z" });
+    expect(getInterviewProximitySortKey(job, now)).toEqual({
+      hasInterview: true,
+      distance: 24 * 60 * 60 * 1000,
+      timestamp: new Date("2026-08-15T10:00:00.000Z").getTime(),
     });
   });
 });
