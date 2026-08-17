@@ -35,9 +35,11 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     application_date: null,
     status: "not_applied",
     desire_level: "medium",
+    casual_interview_at: null,
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,
+    casual_interview_url: null,
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
@@ -89,6 +91,7 @@ describe("JobDetailPage - 面接日時とURL", () => {
   it("見出しはJOB_STATUS_LABELS（一次面接等）を使う", () => {
     renderJobDetail(createTestJob());
 
+    expect(screen.getByText(JOB_STATUS_LABELS.casual_interview)).toBeInTheDocument();
     expect(screen.getByText(JOB_STATUS_LABELS.first_interview)).toBeInTheDocument();
     expect(screen.getByText(JOB_STATUS_LABELS.second_interview)).toBeInTheDocument();
     expect(screen.getByText(JOB_STATUS_LABELS.final_interview)).toBeInTheDocument();

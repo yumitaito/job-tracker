@@ -20,6 +20,7 @@ const CORS_HEADERS: Record<string, string> = {
 };
 
 const STAGE_LABELS: Record<string, string> = {
+  casual_interview: "カジュアル面接日時",
   first_interview: "一次面接日時",
   second_interview: "二次面接日時",
   final_interview: "最終面接日時",
@@ -29,7 +30,7 @@ type InterviewCandidate = {
   jobId: string;
   userId: string;
   companyName: string;
-  stage: "first_interview" | "second_interview" | "final_interview";
+  stage: "casual_interview" | "first_interview" | "second_interview" | "final_interview";
   at: string;
   interviewUrl: string | null;
 };
@@ -82,9 +83,11 @@ function collectInterviewCandidates(
     first_interview_at: string | null;
     second_interview_at: string | null;
     final_interview_at: string | null;
+    casual_interview_at: string | null;
     first_interview_url: string | null;
     second_interview_url: string | null;
     final_interview_url: string | null;
+    casual_interview_url: string | null;
   }>,
   now: Date,
 ): InterviewCandidate[] {
@@ -92,6 +95,7 @@ function collectInterviewCandidates(
 
   for (const job of jobs) {
     const entries: Array<[InterviewCandidate["stage"], string | null, string | null]> = [
+      ["casual_interview", job.casual_interview_at, job.casual_interview_url],
       ["first_interview", job.first_interview_at, job.first_interview_url],
       ["second_interview", job.second_interview_at, job.second_interview_url],
       ["final_interview", job.final_interview_at, job.final_interview_url],
@@ -150,10 +154,11 @@ Deno.serve(async (req: Request) => {
   const { data: jobs, error: jobsError } = await adminClient
     .from("jobs")
     .select(
-      "id, user_id, company_name, first_interview_at, second_interview_at, final_interview_at, first_interview_url, second_interview_url, final_interview_url",
+      "id, user_id, company_name, casual_interview_at, first_interview_at, second_interview_at, final_interview_at, casual_interview_url, first_interview_url, second_interview_url, final_interview_url",
     )
     .or(
       [
+        `and(casual_interview_at.gte.${nowIso},casual_interview_at.lte.${windowEndIso})`,
         `and(first_interview_at.gte.${nowIso},first_interview_at.lte.${windowEndIso})`,
         `and(second_interview_at.gte.${nowIso},second_interview_at.lte.${windowEndIso})`,
         `and(final_interview_at.gte.${nowIso},final_interview_at.lte.${windowEndIso})`,

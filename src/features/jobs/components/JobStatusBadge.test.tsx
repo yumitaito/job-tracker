@@ -9,8 +9,8 @@ describe("JobStatusBadge", () => {
     expect(screen.getByText(JOB_STATUS_LABELS[status])).toBeInTheDocument();
   });
 
-  it("8段階すべてのステータスにラベルが定義されている（網羅性の回帰確認）", () => {
-    expect(JOB_STATUSES).toHaveLength(8);
+  it("9段階すべてのステータスにラベルが定義されている（網羅性の回帰確認）", () => {
+    expect(JOB_STATUSES).toHaveLength(9);
     for (const status of JOB_STATUSES) {
       expect(JOB_STATUS_LABELS[status]).toBeTruthy();
     }

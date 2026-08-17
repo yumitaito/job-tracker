@@ -1,6 +1,7 @@
 export type JobStatus =
   | "not_applied"
   | "document_screening"
+  | "casual_interview"
   | "first_interview"
   | "second_interview"
   | "final_interview"
@@ -12,6 +13,7 @@ export type JobStatus =
 export const JOB_STATUSES: JobStatus[] = [
   "not_applied",
   "document_screening",
+  "casual_interview",
   "first_interview",
   "second_interview",
   "final_interview",
@@ -23,6 +25,7 @@ export const JOB_STATUSES: JobStatus[] = [
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   not_applied: "未応募",
   document_screening: "書類選考中",
+  casual_interview: "カジュアル面接",
   first_interview: "一次面接",
   second_interview: "二次面接",
   final_interview: "最終面接",
@@ -52,9 +55,11 @@ export type Job = {
   application_date: string | null;
   status: JobStatus;
   desire_level: DesireLevel;
+  casual_interview_at: string | null;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
+  casual_interview_url: string | null;
   first_interview_url: string | null;
   second_interview_url: string | null;
   final_interview_url: string | null;
@@ -77,9 +82,11 @@ export type CreateJobInput = {
   application_date: string | null;
   status: JobStatus;
   desire_level: DesireLevel;
+  casual_interview_at: string | null;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
+  casual_interview_url: string | null;
   first_interview_url: string | null;
   second_interview_url: string | null;
   final_interview_url: string | null;

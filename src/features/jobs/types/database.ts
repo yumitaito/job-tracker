@@ -15,9 +15,11 @@ type JobRow = {
   application_date: string | null;
   status: JobStatus;
   desire_level: DesireLevel;
+  casual_interview_at: string | null;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
+  casual_interview_url: string | null;
   first_interview_url: string | null;
   second_interview_url: string | null;
   final_interview_url: string | null;
@@ -42,9 +44,11 @@ type JobInsert = {
   application_date?: string | null;
   status?: JobStatus;
   desire_level?: DesireLevel;
+  casual_interview_at?: string | null;
   first_interview_at?: string | null;
   second_interview_at?: string | null;
   final_interview_at?: string | null;
+  casual_interview_url?: string | null;
   first_interview_url?: string | null;
   second_interview_url?: string | null;
   final_interview_url?: string | null;

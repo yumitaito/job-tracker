@@ -26,9 +26,11 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     application_date: null,
     status: "not_applied",
     desire_level: "medium",
+    casual_interview_at: null,
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,
+    casual_interview_url: null,
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
@@ -99,7 +101,8 @@ describe("getLatestInterview", () => {
 });
 
 describe("INTERVIEW_STAGE_LABELS", () => {
-  it("first_interview/second_interview/final_interviewの3キーすべてに文字列が定義されている", () => {
+  it("first_interview/second_interview/final_interview/casual_interviewの4キーすべてに文字列が定義されている", () => {
+    expect(INTERVIEW_STAGE_LABELS.casual_interview).toBe("カジュアル面接日時");
     expect(INTERVIEW_STAGE_LABELS.first_interview).toBe("一次面接日時");
     expect(INTERVIEW_STAGE_LABELS.second_interview).toBe("二次面接日時");
     expect(INTERVIEW_STAGE_LABELS.final_interview).toBe("最終面接日時");

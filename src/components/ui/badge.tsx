@@ -14,6 +14,8 @@ const badgeVariants = cva(
           "border-transparent bg-[var(--status-not-applied-bg)] text-[var(--status-not-applied-fg)]",
         statusDocumentScreening:
           "border-transparent bg-[var(--status-document-screening-bg)] text-[var(--status-document-screening-fg)]",
+        statusCasualInterview:
+          "border-transparent bg-[var(--status-casual-interview-bg)] text-[var(--status-casual-interview-fg)]",
         statusFirstInterview:
           "border-transparent bg-[var(--status-first-interview-bg)] text-[var(--status-first-interview-fg)]",
         statusSecondInterview:
