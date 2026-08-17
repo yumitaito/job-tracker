@@ -2,15 +2,21 @@ import type { LatestInterview } from "@/features/jobs/lib/interview";
 import { getInterviewUrl, getLatestInterview } from "@/features/jobs/lib/interview";
 import type { Job, JobStatus } from "@/features/jobs/types/job";
 
-export type InterviewDateField = "first_interview_at" | "second_interview_at" | "final_interview_at";
+export type InterviewDateField =
+  | "casual_interview_at"
+  | "first_interview_at"
+  | "second_interview_at"
+  | "final_interview_at";
 
 const STAGE_TO_FIELD: Record<LatestInterview["stage"], InterviewDateField> = {
+  casual_interview: "casual_interview_at",
   first_interview: "first_interview_at",
   second_interview: "second_interview_at",
   final_interview: "final_interview_at",
 };
 
 const INTERVIEW_STATUSES = new Set<JobStatus>([
+  "casual_interview",
   "first_interview",
   "second_interview",
   "final_interview",

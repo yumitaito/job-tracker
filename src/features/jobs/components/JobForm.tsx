@@ -48,9 +48,11 @@ const EMPTY_VALUES: JobFormValues = {
   application_date: "",
   status: "",
   desire_level: "medium",
+  casual_interview_at: "",
   first_interview_at: "",
   second_interview_at: "",
   final_interview_at: "",
+  casual_interview_url: "",
   first_interview_url: "",
   second_interview_url: "",
   final_interview_url: "",
@@ -290,7 +292,25 @@ export function JobForm({
           </Field>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-4">
+            <Field label="カジュアル面接日時" error={errors.casual_interview_at?.message}>
+              <Input
+                type="datetime-local"
+                aria-invalid={Boolean(errors.casual_interview_at)}
+                {...register("casual_interview_at")}
+              />
+            </Field>
+            <Field label="カジュアル面接URL" error={errors.casual_interview_url?.message}>
+              <Input
+                type="url"
+                placeholder="例）https://zoom.us/j/..."
+                aria-invalid={Boolean(errors.casual_interview_url)}
+                {...register("casual_interview_url")}
+              />
+            </Field>
+          </div>
+
           <div className="space-y-4">
             <Field label="一次面接日時" error={errors.first_interview_at?.message}>
               <Input

@@ -96,6 +96,9 @@ npm install
    - 既に `jobs` テーブルを作成済みの環境で面接入室URLの記録に対応する場合：
      [`supabase/migrations/0008_add_interview_urls.sql`](supabase/migrations/0008_add_interview_urls.sql) を実行
      （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
+   - 既に `jobs` テーブルを作成済みの環境でカジュアル面接に対応する場合：
+     [`supabase/migrations/0009_add_casual_interview.sql`](supabase/migrations/0009_add_casual_interview.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -238,11 +241,13 @@ create table public.jobs (
   employment_type text,
   application_url text,
   application_date date, -- 任意項目（未入力可）
-  status text not null default 'not_applied', -- 選考ステータス（8段階、下記参照）
+  status text not null default 'not_applied', -- 選考ステータス（9段階、下記参照）
   desire_level text not null default 'medium', -- 志望度（high / medium / low）
+  casual_interview_at timestamptz, -- カジュアル面接日時（任意項目）
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
+  casual_interview_url text, -- カジュアル面接入室URL（任意項目）
   first_interview_url text, -- 一次面接入室URL（任意項目）
   second_interview_url text, -- 二次面接入室URL（任意項目）
   final_interview_url text, -- 最終面接入室URL（任意項目）
@@ -257,6 +262,7 @@ create table public.jobs (
   constraint jobs_status_check check (status in (
     'not_applied',
     'document_screening',
+    'casual_interview',
     'first_interview',
     'second_interview',
     'final_interview',
@@ -271,12 +277,13 @@ create table public.jobs (
 );
 ```
 
-`status` は選考の進行順に以下の8段階を取ります。
+`status` は選考の進行順に以下の9段階を取ります。
 
 | 値 | 表示ラベル |
 | --- | --- |
 | `not_applied` | 未応募 |
 | `document_screening` | 書類選考中 |
+| `casual_interview` | カジュアル面接 |
 | `first_interview` | 一次面接 |
 | `second_interview` | 二次面接 |
 | `final_interview` | 最終面接 |

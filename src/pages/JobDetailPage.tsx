@@ -152,6 +152,15 @@ export default function JobDetailPage() {
             <InfoItem icon={<Tag />} label="志望度" value={<DesireLevelBadge level={job.desire_level} />} />
             <InfoItem
               icon={<CalendarClock />}
+              label={JOB_STATUS_LABELS.casual_interview}
+              value={
+                job.casual_interview_at || job.casual_interview_url ? (
+                  <InterviewInfoValue at={job.casual_interview_at} url={job.casual_interview_url} />
+                ) : null
+              }
+            />
+            <InfoItem
+              icon={<CalendarClock />}
               label={JOB_STATUS_LABELS.first_interview}
               value={
                 job.first_interview_at || job.first_interview_url ? (

@@ -56,9 +56,11 @@ export const jobFormSchema = z
     desire_level: z.enum(DESIRE_LEVELS as [string, ...string[]], {
       message: "志望度を選択してください",
     }),
+    casual_interview_at: optionalDateTimeLocal,
     first_interview_at: optionalDateTimeLocal,
     second_interview_at: optionalDateTimeLocal,
     final_interview_at: optionalDateTimeLocal,
+    casual_interview_url: optionalUrl,
     first_interview_url: optionalUrl,
     second_interview_url: optionalUrl,
     final_interview_url: optionalUrl,

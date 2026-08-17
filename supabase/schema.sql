@@ -17,9 +17,11 @@ create table if not exists public.jobs (
   application_date date,
   status text not null default 'not_applied',
   desire_level text not null default 'medium', -- 志望度（high / medium / low）
+  casual_interview_at timestamptz, -- カジュアル面接日時（任意項目）
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
+  casual_interview_url text, -- カジュアル面接入室URL（任意項目）
   first_interview_url text, -- 一次面接入室URL（任意項目）
   second_interview_url text, -- 二次面接入室URL（任意項目）
   final_interview_url text, -- 最終面接入室URL（任意項目）
@@ -34,6 +36,7 @@ create table if not exists public.jobs (
   constraint jobs_status_check check (status in (
     'not_applied',
     'document_screening',
+    'casual_interview',
     'first_interview',
     'second_interview',
     'final_interview',
@@ -113,7 +116,7 @@ create table if not exists public.interview_push_sent (
   user_id uuid not null references auth.users(id) on delete cascade,
   job_id uuid not null references public.jobs(id) on delete cascade,
   interview_stage text not null check (
-    interview_stage in ('first_interview', 'second_interview', 'final_interview')
+    interview_stage in ('casual_interview', 'first_interview', 'second_interview', 'final_interview')
   ),
   interview_at timestamptz not null,
   sent_at timestamptz not null default now(),
