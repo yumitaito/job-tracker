@@ -16,6 +16,9 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,
+    first_interview_url: null,
+    second_interview_url: null,
+    final_interview_url: null,
     location: null,
     technologies: null,
     notes: null,
@@ -39,6 +42,7 @@ describe("getListEditableInterview", () => {
       stage: "second_interview",
       field: "second_interview_at",
       at: "2026-01-20T14:00:00.000Z",
+      url: null,
     });
   });
 
@@ -49,6 +53,7 @@ describe("getListEditableInterview", () => {
       stage: "first_interview",
       field: "first_interview_at",
       at: null,
+      url: null,
     });
   });
 
@@ -59,6 +64,67 @@ describe("getListEditableInterview", () => {
       stage: "first_interview",
       field: "first_interview_at",
       at: null,
+      url: null,
+    });
+  });
+
+  it("二次面接日時が最新で二次面接URLがある場合、そのURLを返す", () => {
+    const job = createTestJob({
+      first_interview_at: "2026-01-10T10:00:00.000Z",
+      second_interview_at: "2026-01-20T14:00:00.000Z",
+      second_interview_url: "https://zoom.us/j/second",
+    });
+
+    expect(getListEditableInterview(job)).toEqual({
+      stage: "second_interview",
+      field: "second_interview_at",
+      at: "2026-01-20T14:00:00.000Z",
+      url: "https://zoom.us/j/second",
+    });
+  });
+
+  it("二次面接日時が最新で一次面接にだけURLがある場合、urlはnullになる", () => {
+    const job = createTestJob({
+      first_interview_at: "2026-01-10T10:00:00.000Z",
+      second_interview_at: "2026-01-20T14:00:00.000Z",
+      first_interview_url: "https://zoom.us/j/first",
+    });
+
+    expect(getListEditableInterview(job)).toEqual({
+      stage: "second_interview",
+      field: "second_interview_at",
+      at: "2026-01-20T14:00:00.000Z",
+      url: null,
+    });
+  });
+
+  it("日時なし・statusがfirst_interviewで一次面接URLがある場合、そのURLを返す", () => {
+    const job = createTestJob({
+      status: "first_interview",
+      first_interview_url: "https://zoom.us/j/first",
+    });
+
+    expect(getListEditableInterview(job)).toEqual({
+      stage: "first_interview",
+      field: "first_interview_at",
+      at: null,
+      url: "https://zoom.us/j/first",
+    });
+  });
+
+  it("最終面接日時が最新で最終面接URLがある場合、そのURLを返す", () => {
+    const job = createTestJob({
+      first_interview_at: "2026-01-10T10:00:00.000Z",
+      final_interview_at: "2026-02-01T16:30:00.000Z",
+      first_interview_url: "https://zoom.us/j/first",
+      final_interview_url: "https://zoom.us/j/final",
+    });
+
+    expect(getListEditableInterview(job)).toEqual({
+      stage: "final_interview",
+      field: "final_interview_at",
+      at: "2026-02-01T16:30:00.000Z",
+      url: "https://zoom.us/j/final",
     });
   });
 });

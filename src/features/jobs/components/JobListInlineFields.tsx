@@ -1,4 +1,4 @@
-import { useEffect, useState, type SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -41,11 +41,14 @@ function stopRowNavigation(event: SyntheticEvent) {
 
 export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: InlineFieldProps) {
   const editable = getListEditableInterview(job);
+  const syncKey = `${job.id}:${editable.field}:${editable.at ?? ""}`;
   const [value, setValue] = useState(() => toDateTimeLocalInputValue(editable.at));
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
 
-  useEffect(() => {
+  if (prevSyncKey !== syncKey) {
+    setPrevSyncKey(syncKey);
     setValue(toDateTimeLocalInputValue(editable.at));
-  }, [job.id, editable.at, editable.field]);
+  }
 
   const handleBlur = () => {
     const nextIso = value.trim() ? fromDateTimeLocalInputValue(value.trim()) : null;
@@ -82,6 +85,33 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
         onChange={(event) => setValue(event.target.value)}
         onBlur={handleBlur}
       />
+    </div>
+  );
+}
+
+export function JobListInterviewUrlField({ job, compact }: { job: Job; compact?: boolean }) {
+  const editable = getListEditableInterview(job);
+  if (!editable.url) return null;
+
+  return (
+    <div
+      className={cn(compact ? "space-y-1" : "flex min-h-9 items-center")}
+      onClick={stopRowNavigation}
+      onPointerDown={stopRowNavigation}
+    >
+      {compact && <p className="text-xs font-semibold text-foreground">面接URL</p>}
+      <a
+        href={editable.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(
+          "inline-flex min-h-8 items-center font-semibold text-foreground underline-offset-2 hover:underline",
+          compact ? "text-xs" : "text-sm",
+        )}
+        aria-label={`${job.company_name}の${INTERVIEW_STAGE_LABELS[editable.stage]}に入室`}
+      >
+        入室
+      </a>
     </div>
   );
 }

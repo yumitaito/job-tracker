@@ -28,7 +28,7 @@ import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
 import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { useJob } from "@/features/jobs/hooks/use-job";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
-import { INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
+import { JOB_STATUS_LABELS } from "@/features/jobs/types/job";
 import { formatDate, formatDateTime, formatSalary } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -152,18 +152,30 @@ export default function JobDetailPage() {
             <InfoItem icon={<Tag />} label="志望度" value={<DesireLevelBadge level={job.desire_level} />} />
             <InfoItem
               icon={<CalendarClock />}
-              label={INTERVIEW_STAGE_LABELS.first_interview}
-              value={job.first_interview_at ? formatDateTime(job.first_interview_at) : null}
+              label={JOB_STATUS_LABELS.first_interview}
+              value={
+                job.first_interview_at || job.first_interview_url ? (
+                  <InterviewInfoValue at={job.first_interview_at} url={job.first_interview_url} />
+                ) : null
+              }
             />
             <InfoItem
               icon={<CalendarClock />}
-              label={INTERVIEW_STAGE_LABELS.second_interview}
-              value={job.second_interview_at ? formatDateTime(job.second_interview_at) : null}
+              label={JOB_STATUS_LABELS.second_interview}
+              value={
+                job.second_interview_at || job.second_interview_url ? (
+                  <InterviewInfoValue at={job.second_interview_at} url={job.second_interview_url} />
+                ) : null
+              }
             />
             <InfoItem
               icon={<CalendarClock />}
-              label={INTERVIEW_STAGE_LABELS.final_interview}
-              value={job.final_interview_at ? formatDateTime(job.final_interview_at) : null}
+              label={JOB_STATUS_LABELS.final_interview}
+              value={
+                job.final_interview_at || job.final_interview_url ? (
+                  <InterviewInfoValue at={job.final_interview_at} url={job.final_interview_url} />
+                ) : null
+              }
             />
             <InfoItem icon={<MapPin />} label="勤務地" value={job.location} />
             <InfoItem
@@ -209,6 +221,31 @@ export default function JobDetailPage() {
       />
     </PageContainer>
   );
+}
+
+function InterviewInfoValue({ at, url }: { at: string | null; url: string | null }) {
+  const urlLink = url ? (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-secondary underline-offset-2 hover:underline break-all"
+    >
+      {url}
+    </a>
+  ) : null;
+
+  if (at && url) {
+    return (
+      <div className="space-y-1">
+        <p>{formatDateTime(at)}</p>
+        {urlLink}
+      </div>
+    );
+  }
+
+  if (at) return formatDateTime(at);
+  return urlLink;
 }
 
 function InfoItem({

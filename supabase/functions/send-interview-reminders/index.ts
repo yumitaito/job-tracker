@@ -31,6 +31,7 @@ type InterviewCandidate = {
   companyName: string;
   stage: "first_interview" | "second_interview" | "final_interview";
   at: string;
+  interviewUrl: string | null;
 };
 
 type PushSubscriptionRow = {
@@ -81,19 +82,22 @@ function collectInterviewCandidates(
     first_interview_at: string | null;
     second_interview_at: string | null;
     final_interview_at: string | null;
+    first_interview_url: string | null;
+    second_interview_url: string | null;
+    final_interview_url: string | null;
   }>,
   now: Date,
 ): InterviewCandidate[] {
   const candidates: InterviewCandidate[] = [];
 
   for (const job of jobs) {
-    const entries: Array<[InterviewCandidate["stage"], string | null]> = [
-      ["first_interview", job.first_interview_at],
-      ["second_interview", job.second_interview_at],
-      ["final_interview", job.final_interview_at],
+    const entries: Array<[InterviewCandidate["stage"], string | null, string | null]> = [
+      ["first_interview", job.first_interview_at, job.first_interview_url],
+      ["second_interview", job.second_interview_at, job.second_interview_url],
+      ["final_interview", job.final_interview_at, job.final_interview_url],
     ];
 
-    for (const [stage, at] of entries) {
+    for (const [stage, at, interviewUrl] of entries) {
       if (!at || !isWithinReminderWindow(at, now)) continue;
       candidates.push({
         jobId: job.id,
@@ -101,6 +105,7 @@ function collectInterviewCandidates(
         companyName: job.company_name,
         stage,
         at,
+        interviewUrl,
       });
     }
   }
@@ -145,7 +150,7 @@ Deno.serve(async (req: Request) => {
   const { data: jobs, error: jobsError } = await adminClient
     .from("jobs")
     .select(
-      "id, user_id, company_name, first_interview_at, second_interview_at, final_interview_at",
+      "id, user_id, company_name, first_interview_at, second_interview_at, final_interview_at, first_interview_url, second_interview_url, final_interview_url",
     )
     .or(
       [
@@ -194,9 +199,12 @@ Deno.serve(async (req: Request) => {
     if (!subscriptions || subscriptions.length === 0) continue;
 
     const stageLabel = STAGE_LABELS[candidate.stage] ?? candidate.stage;
+    const body = candidate.interviewUrl
+      ? `${candidate.companyName} — ${stageLabel}（${formatDateTime(candidate.at)}）\n入室: ${candidate.interviewUrl}`
+      : `${candidate.companyName} — ${stageLabel}（${formatDateTime(candidate.at)}）`;
     const payload = JSON.stringify({
       title: "面接5分前です",
-      body: `${candidate.companyName} — ${stageLabel}（${formatDateTime(candidate.at)}）`,
+      body,
       url: "/jobs",
     });
 

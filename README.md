@@ -93,6 +93,9 @@ npm install
    - 志望度フィールドを使う場合：
      [`supabase/migrations/0007_add_desire_level.sql`](supabase/migrations/0007_add_desire_level.sql) を実行
      （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
+   - 既に `jobs` テーブルを作成済みの環境で面接入室URLの記録に対応する場合：
+     [`supabase/migrations/0008_add_interview_urls.sql`](supabase/migrations/0008_add_interview_urls.sql) を実行
+     （新規セットアップの場合は `supabase/schema.sql` に反映済みのため実行不要）。
 3. Project Settings → API から `Project URL` と `anon public key` を控えます。
 4. Authentication → Providers で **Email** プロバイダが有効になっていることを確認します（デフォルトで有効）。
 5. Edge Functionsをデプロイします（[Supabase CLI](https://supabase.com/docs/guides/cli)が必要）。
@@ -240,6 +243,9 @@ create table public.jobs (
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
+  first_interview_url text, -- 一次面接入室URL（任意項目）
+  second_interview_url text, -- 二次面接入室URL（任意項目）
+  final_interview_url text, -- 最終面接入室URL（任意項目）
   location text,
   technologies text[],
   notes text,
@@ -344,6 +350,7 @@ Edge Functionをサーバー側に用意し、そこでのみ使用していま�
 
 面接開始5分前に、**ブラウザを閉じていても** OS 通知でリマインドする機能です。
 設定画面の「面接リマインダー通知」からオンにできます。
+面接入室URLが登録されている場合は、通知本文にそのURLを含めます。
 
 ### 1. VAPID キーの生成
 

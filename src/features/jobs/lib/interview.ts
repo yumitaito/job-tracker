@@ -12,6 +12,19 @@ export const INTERVIEW_STAGE_LABELS: Record<LatestInterview["stage"], string> = 
   final_interview: "最終面接日時",
 };
 
+export const INTERVIEW_URL_FIELDS = {
+  first_interview: "first_interview_url",
+  second_interview: "second_interview_url",
+  final_interview: "final_interview_url",
+} as const satisfies Record<LatestInterview["stage"], keyof Job>;
+
+export function getInterviewUrl(
+  job: Job,
+  stage: LatestInterview["stage"],
+): string | null {
+  return job[INTERVIEW_URL_FIELDS[stage]];
+}
+
 /** 求人に登録されている面接日時をすべて返す（未入力は除外）。 */
 export function getJobInterviews(job: Job): LatestInterview[] {
   const interviews: LatestInterview[] = [];

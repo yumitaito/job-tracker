@@ -20,6 +20,9 @@ create table if not exists public.jobs (
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
+  first_interview_url text, -- 一次面接入室URL（任意項目）
+  second_interview_url text, -- 二次面接入室URL（任意項目）
+  final_interview_url text, -- 最終面接入室URL（任意項目）
   location text,
   technologies text[],
   notes text,

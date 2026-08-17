@@ -31,6 +31,7 @@ import { JobDragHandle } from "@/features/jobs/components/JobDragHandle";
 import {
   JobListDesireLevelField,
   JobListInterviewField,
+  JobListInterviewUrlField,
   JobListStatusField,
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
@@ -39,7 +40,6 @@ import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { isJobInterviewPast } from "@/features/jobs/lib/interview";
 import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { reorderJobIds } from "@/features/jobs/lib/job-order";
-import { formatDate } from "@/lib/format";
 import type { Job } from "@/features/jobs/types/job";
 
 function SortableJobTableRow({
@@ -107,7 +107,9 @@ function SortableJobTableRow({
       <TableCell className="align-top py-4">
         <JobListStatusField job={job} onUpdate={onUpdateJob} isUpdating={isUpdating} />
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">{formatDate(job.updated_at)}</TableCell>
+      <TableCell className="align-top py-4">
+        <JobListInterviewUrlField job={job} />
+      </TableCell>
       <TableCell>
         <div className="flex items-center justify-end gap-2">
           <Button asChild variant="outline" size="sm">
@@ -190,7 +192,7 @@ export function JobSortableTable({
               <TableHead className="w-52">面接日時</TableHead>
               <TableHead className="w-24 whitespace-nowrap">志望度</TableHead>
               <TableHead className="min-w-40 whitespace-nowrap">選考ステータス</TableHead>
-              <TableHead className="w-40">最終更新日</TableHead>
+              <TableHead className="w-24 whitespace-nowrap">面接URL</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>

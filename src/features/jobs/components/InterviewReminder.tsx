@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import {
   getInterviewReminderKey,
+  getInterviewUrl,
   getJobInterviews,
   INTERVIEW_STAGE_LABELS,
   isFiveMinutesBeforeInterview,
@@ -20,6 +21,7 @@ type InterviewReminderAlert = {
   companyName: string;
   stageLabel: string;
   at: string;
+  url: string | null;
 };
 
 function loadNotifiedKeys(): Set<string> {
@@ -63,6 +65,7 @@ export function InterviewReminder() {
             companyName: job.company_name,
             stageLabel: INTERVIEW_STAGE_LABELS[interview.stage],
             at: interview.at,
+            url: getInterviewUrl(job, interview.stage),
           });
         }
       }
@@ -97,8 +100,21 @@ export function InterviewReminder() {
         >
           <AlertTriangle />
           <AlertTitle>面接5分前です</AlertTitle>
-          <AlertDescription>
-            {alert.companyName} — {alert.stageLabel}（{formatDateTime(alert.at)}）
+          <AlertDescription className="space-y-1">
+            <p>
+              {alert.companyName} — {alert.stageLabel}（{formatDateTime(alert.at)}）
+            </p>
+            {alert.url ? (
+              <a
+                href={alert.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-8 items-center font-semibold text-secondary underline-offset-2 hover:underline"
+                aria-label={`${alert.companyName}の${alert.stageLabel}に入室`}
+              >
+                入室する
+              </a>
+            ) : null}
           </AlertDescription>
           <Button
             type="button"
