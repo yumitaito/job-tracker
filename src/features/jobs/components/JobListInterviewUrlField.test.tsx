@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { JobListInterviewField } from "./JobListInlineFields";
+import { JobListInterviewUrlField } from "./JobListInlineFields";
 import { INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -33,14 +33,14 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
   };
 }
 
-describe("JobListInterviewField", () => {
+describe("JobListInterviewUrlField", () => {
   it("表示中の段階にURLがある場合は入室リンクを表示する", () => {
     const job = createTestJob({
       first_interview_at: "2026-01-10T10:00:00.000Z",
       first_interview_url: "https://zoom.us/j/first",
     });
 
-    render(<JobListInterviewField job={job} onUpdate={vi.fn()} />);
+    render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
       name: `${job.company_name}の${INTERVIEW_STAGE_LABELS.first_interview}に入室`,
@@ -51,15 +51,14 @@ describe("JobListInterviewField", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("表示中の段階にURLがない場合は入室リンクを表示しない", () => {
+  it("表示中の段階にURLがない場合は何も表示しない", () => {
     const job = createTestJob({
       first_interview_at: "2026-01-10T10:00:00.000Z",
     });
 
-    render(<JobListInterviewField job={job} onUpdate={vi.fn()} />);
+    const { container } = render(<JobListInterviewUrlField job={job} />);
 
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-    expect(screen.queryByText("入室")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("二次面接が表示対象のとき、一次面接URLだけでは入室リンクを出さない", () => {
@@ -69,9 +68,9 @@ describe("JobListInterviewField", () => {
       first_interview_url: "https://zoom.us/j/first",
     });
 
-    render(<JobListInterviewField job={job} onUpdate={vi.fn()} />);
+    const { container } = render(<JobListInterviewUrlField job={job} />);
 
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("二次面接が表示対象で二次面接URLがある場合は二次面接の入室リンクを表示する", () => {
@@ -82,7 +81,7 @@ describe("JobListInterviewField", () => {
       second_interview_url: "https://meet.google.com/abc-defg-hij",
     });
 
-    render(<JobListInterviewField job={job} onUpdate={vi.fn()} />);
+    render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
       name: `株式会社サンプルの${INTERVIEW_STAGE_LABELS.second_interview}に入室`,
@@ -96,11 +95,21 @@ describe("JobListInterviewField", () => {
       final_interview_url: "https://zoom.us/j/final",
     });
 
-    render(<JobListInterviewField job={job} onUpdate={vi.fn()} />);
+    render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
       name: `${job.company_name}の${INTERVIEW_STAGE_LABELS.final_interview}に入室`,
     });
     expect(link).toHaveAttribute("href", "https://zoom.us/j/final");
+  });
+
+  it("compactモードでは面接URLラベルを表示する", () => {
+    const job = createTestJob({
+      first_interview_url: "https://zoom.us/j/first",
+    });
+
+    render(<JobListInterviewUrlField job={job} compact />);
+
+    expect(screen.getByText("面接URL")).toBeInTheDocument();
   });
 });

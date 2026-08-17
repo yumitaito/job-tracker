@@ -5,13 +5,13 @@ import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import {
   JobListDesireLevelField,
   JobListInterviewField,
+  JobListInterviewUrlField,
   JobListStatusField,
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { isJobInterviewPast } from "@/features/jobs/lib/interview";
 import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
-import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -75,10 +75,7 @@ export function JobCard({
             />
           </div>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-foreground">最終更新日</p>
-          <p className="text-xs text-muted-foreground">{formatDate(job.updated_at)}</p>
-        </div>
+        <JobListInterviewUrlField job={job} compact />
       </div>
 
       <div className="flex items-center gap-2">
