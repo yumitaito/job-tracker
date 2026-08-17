@@ -155,7 +155,7 @@ function compareInterviewProximitySortKeys(
   }
 
   if (left.timing === 0) {
-    return right.timestamp - left.timestamp;
+    return left.timestamp - right.timestamp;
   }
 
   return left.timestamp - right.timestamp;

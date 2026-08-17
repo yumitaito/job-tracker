@@ -229,7 +229,7 @@ describe("sortJobsByUpcomingInterview", () => {
     ]);
   });
 
-  it("過去の面接を未来より上に並べ、各グループ内は近い順に並ぶ", () => {
+  it("過去の面接を未来より上に並べ、過去は古い順・未来は近い順に並ぶ", () => {
     const jobs = [
       createTestJob({
         id: "job-none",
@@ -258,8 +258,8 @@ describe("sortJobsByUpcomingInterview", () => {
     ];
 
     expect(sortJobsByUpcomingInterview(jobs, now).map((job) => job.id)).toEqual([
-      "job-recent-past",
       "job-old-past",
+      "job-recent-past",
       "job-upcoming",
       "job-far-future",
       "job-none",
