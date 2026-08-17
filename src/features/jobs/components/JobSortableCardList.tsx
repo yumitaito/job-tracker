@@ -17,16 +17,21 @@ import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { JobCard } from "@/features/jobs/components/JobCard";
 import { JobDragHandle } from "@/features/jobs/components/JobDragHandle";
+import type { JobListFieldUpdater } from "@/features/jobs/components/JobListInlineFields";
 import { reorderJobIds } from "@/features/jobs/lib/job-order";
 import type { Job } from "@/features/jobs/types/job";
 
 function SortableJobCardItem({
   job,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId,
   reorderEnabled,
 }: {
   job: Job;
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId: string | null;
   reorderEnabled: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -54,7 +59,12 @@ function SortableJobCardItem({
         />
       )}
       <div className="min-w-0 flex-1">
-        <JobCard job={job} onDeleteRequest={onDeleteRequest} />
+        <JobCard
+          job={job}
+          onDeleteRequest={onDeleteRequest}
+          onUpdateJob={onUpdateJob}
+          updatingJobId={updatingJobId}
+        />
       </div>
     </div>
   );
@@ -65,11 +75,15 @@ export function JobSortableCardList({
   onReorder,
   reorderEnabled,
   onDeleteRequest,
+  onUpdateJob,
+  updatingJobId = null,
 }: {
   jobs: Job[];
   onReorder: (orderedIds: string[]) => void;
   reorderEnabled: boolean;
   onDeleteRequest: (job: Job) => void;
+  onUpdateJob: JobListFieldUpdater;
+  updatingJobId?: string | null;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -90,7 +104,13 @@ export function JobSortableCardList({
     return (
       <div className="grid grid-cols-1 gap-4">
         {jobs.map((job) => (
-          <JobCard key={job.id} job={job} onDeleteRequest={onDeleteRequest} />
+          <JobCard
+            key={job.id}
+            job={job}
+            onDeleteRequest={onDeleteRequest}
+            onUpdateJob={onUpdateJob}
+            updatingJobId={updatingJobId}
+          />
         ))}
       </div>
     );
@@ -105,6 +125,8 @@ export function JobSortableCardList({
               key={job.id}
               job={job}
               onDeleteRequest={onDeleteRequest}
+              onUpdateJob={onUpdateJob}
+              updatingJobId={updatingJobId}
               reorderEnabled={reorderEnabled}
             />
           ))}

@@ -26,6 +26,12 @@ const badgeVariants = cva(
           "border-transparent bg-[var(--status-rejected-bg)] text-[var(--status-rejected-fg)]",
         statusWithdrawn:
           "border-transparent bg-[var(--status-withdrawn-bg)] text-[var(--status-withdrawn-fg)]",
+        desireHigh:
+          "border-transparent bg-[var(--desire-high-bg)] text-[var(--desire-high-fg)]",
+        desireMedium:
+          "border-transparent bg-[var(--desire-medium-bg)] text-[var(--desire-medium-fg)]",
+        desireLow:
+          "border-transparent bg-[var(--desire-low-bg)] text-[var(--desire-low-fg)]",
       },
     },
     defaultVariants: {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fromDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
-import { JOB_STATUSES } from "@/features/jobs/types/job";
+import { DESIRE_LEVELS, JOB_STATUSES } from "@/features/jobs/types/job";
 
 const optionalText = (max: number) =>
   z
@@ -52,6 +52,9 @@ export const jobFormSchema = z
     application_date: optionalText(20),
     status: z.enum(JOB_STATUSES as [string, ...string[]], {
       message: "応募ステータスを選択してください",
+    }),
+    desire_level: z.enum(DESIRE_LEVELS as [string, ...string[]], {
+      message: "志望度を選択してください",
     }),
     first_interview_at: optionalDateTimeLocal,
     second_interview_at: optionalDateTimeLocal,

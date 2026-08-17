@@ -10,6 +10,7 @@ export function jobToFormValues(job: Job): JobFormValues {
     application_url: job.application_url ?? "",
     application_date: job.application_date ?? "",
     status: job.status,
+    desire_level: job.desire_level,
     first_interview_at: toDateTimeLocalInputValue(job.first_interview_at),
     second_interview_at: toDateTimeLocalInputValue(job.second_interview_at),
     final_interview_at: toDateTimeLocalInputValue(job.final_interview_at),

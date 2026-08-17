@@ -3,7 +3,7 @@
  * supabase-jsのcreateClient<Database>()に渡すための最小限の型定義。
  */
 import type { NotificationsDatabaseTables } from "@/features/notifications/types/database";
-import type { JobStatus } from "./job";
+import type { JobStatus, DesireLevel } from "./job";
 
 type JobRow = {
   id: string;
@@ -14,6 +14,7 @@ type JobRow = {
   application_url: string | null;
   application_date: string | null;
   status: JobStatus;
+  desire_level: DesireLevel;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
@@ -37,6 +38,7 @@ type JobInsert = {
   application_url?: string | null;
   application_date?: string | null;
   status?: JobStatus;
+  desire_level?: DesireLevel;
   first_interview_at?: string | null;
   second_interview_at?: string | null;
   final_interview_at?: string | null;

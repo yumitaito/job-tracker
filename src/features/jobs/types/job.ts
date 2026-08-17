@@ -31,6 +31,16 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   withdrawn: "辞退",
 };
 
+export type DesireLevel = "high" | "medium" | "low";
+
+export const DESIRE_LEVELS: DesireLevel[] = ["high", "medium", "low"];
+
+export const DESIRE_LEVEL_LABELS: Record<DesireLevel, string> = {
+  high: "高",
+  medium: "中",
+  low: "低",
+};
+
 /** Supabaseの`jobs`テーブル1件分を表すエンティティ型 */
 export type Job = {
   id: string;
@@ -41,6 +51,7 @@ export type Job = {
   application_url: string | null;
   application_date: string | null;
   status: JobStatus;
+  desire_level: DesireLevel;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
@@ -62,6 +73,7 @@ export type CreateJobInput = {
   application_url: string | null;
   application_date: string | null;
   status: JobStatus;
+  desire_level: DesireLevel;
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;

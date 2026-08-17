@@ -39,6 +39,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     application_url: null,
     application_date: null,
     status: "first_interview",
+    desire_level: "medium",
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,

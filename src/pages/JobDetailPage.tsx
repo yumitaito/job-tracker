@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobStatusBadge } from "@/features/jobs/components/JobStatusBadge";
+import { DesireLevelBadge } from "@/features/jobs/components/DesireLevelBadge";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
 import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
@@ -148,6 +149,7 @@ export default function JobDetailPage() {
               <InfoItem icon={<Calendar />} label="応募日" value={formatDate(job.application_date)} />
             ) : null}
             <InfoItem icon={<Tag />} label="選考ステータス" value={<JobStatusBadge status={job.status} />} />
+            <InfoItem icon={<Tag />} label="志望度" value={<DesireLevelBadge level={job.desire_level} />} />
             <InfoItem
               icon={<CalendarClock />}
               label={INTERVIEW_STAGE_LABELS.first_interview}

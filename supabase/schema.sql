@@ -16,6 +16,7 @@ create table if not exists public.jobs (
   application_url text,
   application_date date,
   status text not null default 'not_applied',
+  desire_level text not null default 'medium', -- 志望度（high / medium / low）
   first_interview_at timestamptz, -- 一次面接日時（任意項目）
   second_interview_at timestamptz, -- 二次面接日時（任意項目）
   final_interview_at timestamptz, -- 最終面接日時（任意項目）
@@ -37,6 +38,7 @@ create table if not exists public.jobs (
     'rejected',
     'withdrawn'
   )),
+  constraint jobs_desire_level_check check (desire_level in ('high', 'medium', 'low')),
   constraint jobs_salary_range_check check (
     min_salary is null or max_salary is null or min_salary <= max_salary
   )
