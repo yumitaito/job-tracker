@@ -44,6 +44,15 @@ describe("isToday", () => {
   it("今日以外の日付ならfalseを返す", () => {
     expect(isToday("2020-01-01T09:00:00.000Z")).toBe(false);
   });
+
+  it("比較基準のnowを渡した場合はその日付で判定する", () => {
+    const now = new Date(2026, 7, 16, 15, 0);
+
+    expect(isToday(new Date(2026, 7, 16, 9, 0).toISOString(), now)).toBe(true);
+    expect(isToday(new Date(2026, 7, 16, 23, 59).toISOString(), now)).toBe(true);
+    expect(isToday(new Date(2026, 7, 15, 23, 59).toISOString(), now)).toBe(false);
+    expect(isToday(new Date(2026, 7, 17, 0, 0).toISOString(), now)).toBe(false);
+  });
 });
 
 describe("formatSalary", () => {

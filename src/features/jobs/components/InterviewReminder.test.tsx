@@ -43,6 +43,9 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,
+    first_interview_url: null,
+    second_interview_url: null,
+    final_interview_url: null,
     location: null,
     technologies: null,
     notes: null,
@@ -104,6 +107,79 @@ describe("InterviewReminder", () => {
     expect(screen.getByText("面接5分前です")).toBeInTheDocument();
     expect(screen.getByText(/株式会社サンプル/)).toBeInTheDocument();
     expect(screen.getByText(/一次面接日時/)).toBeInTheDocument();
+  });
+
+  it("面接入室URLがある場合は入室するリンクを表示する", () => {
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockJobs([
+      createTestJob({
+        company_name: "株式会社サンプル",
+        first_interview_at: interviewAt.toISOString(),
+        first_interview_url: "https://zoom.us/j/123",
+      }),
+    ]);
+
+    render(<InterviewReminder />);
+
+    const link = screen.getByRole("link", { name: "株式会社サンプルの一次面接日時に入室" });
+    expect(link).toHaveTextContent("入室する");
+    expect(link).toHaveAttribute("href", "https://zoom.us/j/123");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("面接入室URLがない場合は入室リンクを表示しない", () => {
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockJobs([
+      createTestJob({ company_name: "株式会社サンプル", first_interview_at: interviewAt.toISOString() }),
+    ]);
+
+    render(<InterviewReminder />);
+
+    expect(screen.getByText("面接5分前です")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByText("入室する")).not.toBeInTheDocument();
+  });
+
+  it("5分前の段階と異なる面接URLでは入室リンクを表示しない", () => {
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockJobs([
+      createTestJob({
+        company_name: "株式会社サンプル",
+        first_interview_at: interviewAt.toISOString(),
+        second_interview_url: "https://zoom.us/j/second",
+      }),
+    ]);
+
+    render(<InterviewReminder />);
+
+    expect(screen.getByText("面接5分前です")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("二次面接が5分前で二次面接URLがある場合は二次面接の入室リンクを表示する", () => {
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockJobs([
+      createTestJob({
+        company_name: "B社",
+        second_interview_at: interviewAt.toISOString(),
+        second_interview_url: "https://zoom.us/j/2",
+      }),
+    ]);
+
+    render(<InterviewReminder />);
+
+    const link = screen.getByRole("link", { name: "B社の二次面接日時に入室" });
+    expect(link).toHaveTextContent("入室する");
+    expect(link).toHaveAttribute("href", "https://zoom.us/j/2");
   });
 
   it("複数の求人・面接段階が同時に5分前を迎えた場合はそれぞれアラートを表示する", () => {

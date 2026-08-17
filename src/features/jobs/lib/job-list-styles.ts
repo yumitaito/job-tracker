@@ -13,7 +13,7 @@ export function getInterviewDateTimeClassName(at: string, now: Date = new Date()
     return "whitespace-nowrap text-muted-foreground";
   }
 
-  if (isToday(at)) {
+  if (isToday(at, now)) {
     return "whitespace-nowrap font-bold text-destructive";
   }
 

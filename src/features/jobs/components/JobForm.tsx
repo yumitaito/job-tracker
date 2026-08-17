@@ -51,6 +51,9 @@ const EMPTY_VALUES: JobFormValues = {
   first_interview_at: "",
   second_interview_at: "",
   final_interview_at: "",
+  first_interview_url: "",
+  second_interview_url: "",
+  final_interview_url: "",
   location: "",
   technologies: [],
   notes: "",
@@ -288,29 +291,59 @@ export function JobForm({
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Field label="一次面接日時" error={errors.first_interview_at?.message}>
-            <Input
-              type="datetime-local"
-              aria-invalid={Boolean(errors.first_interview_at)}
-              {...register("first_interview_at")}
-            />
-          </Field>
+          <div className="space-y-4">
+            <Field label="一次面接日時" error={errors.first_interview_at?.message}>
+              <Input
+                type="datetime-local"
+                aria-invalid={Boolean(errors.first_interview_at)}
+                {...register("first_interview_at")}
+              />
+            </Field>
+            <Field label="一次面接URL" error={errors.first_interview_url?.message}>
+              <Input
+                type="url"
+                placeholder="例）https://zoom.us/j/..."
+                aria-invalid={Boolean(errors.first_interview_url)}
+                {...register("first_interview_url")}
+              />
+            </Field>
+          </div>
 
-          <Field label="二次面接日時" error={errors.second_interview_at?.message}>
-            <Input
-              type="datetime-local"
-              aria-invalid={Boolean(errors.second_interview_at)}
-              {...register("second_interview_at")}
-            />
-          </Field>
+          <div className="space-y-4">
+            <Field label="二次面接日時" error={errors.second_interview_at?.message}>
+              <Input
+                type="datetime-local"
+                aria-invalid={Boolean(errors.second_interview_at)}
+                {...register("second_interview_at")}
+              />
+            </Field>
+            <Field label="二次面接URL" error={errors.second_interview_url?.message}>
+              <Input
+                type="url"
+                placeholder="例）https://zoom.us/j/..."
+                aria-invalid={Boolean(errors.second_interview_url)}
+                {...register("second_interview_url")}
+              />
+            </Field>
+          </div>
 
-          <Field label="最終面接日時" error={errors.final_interview_at?.message}>
-            <Input
-              type="datetime-local"
-              aria-invalid={Boolean(errors.final_interview_at)}
-              {...register("final_interview_at")}
-            />
-          </Field>
+          <div className="space-y-4">
+            <Field label="最終面接日時" error={errors.final_interview_at?.message}>
+              <Input
+                type="datetime-local"
+                aria-invalid={Boolean(errors.final_interview_at)}
+                {...register("final_interview_at")}
+              />
+            </Field>
+            <Field label="最終面接URL" error={errors.final_interview_url?.message}>
+              <Input
+                type="url"
+                placeholder="例）https://zoom.us/j/..."
+                aria-invalid={Boolean(errors.final_interview_url)}
+                {...register("final_interview_url")}
+              />
+            </Field>
+          </div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -41,11 +41,14 @@ function stopRowNavigation(event: SyntheticEvent) {
 
 export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: InlineFieldProps) {
   const editable = getListEditableInterview(job);
+  const syncKey = `${job.id}:${editable.field}:${editable.at ?? ""}`;
   const [value, setValue] = useState(() => toDateTimeLocalInputValue(editable.at));
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
 
-  useEffect(() => {
+  if (prevSyncKey !== syncKey) {
+    setPrevSyncKey(syncKey);
     setValue(toDateTimeLocalInputValue(editable.at));
-  }, [job.id, editable.at, editable.field]);
+  }
 
   const handleBlur = () => {
     const nextIso = value.trim() ? fromDateTimeLocalInputValue(value.trim()) : null;
@@ -59,7 +62,9 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
 
   return (
     <div
-      className={cn(compact ? "space-y-1" : "flex min-h-9 items-center")}
+      className={cn(
+        compact || editable.url ? "space-y-1" : "flex min-h-9 items-center",
+      )}
       onClick={stopRowNavigation}
       onPointerDown={stopRowNavigation}
     >
@@ -82,6 +87,17 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
         onChange={(event) => setValue(event.target.value)}
         onBlur={handleBlur}
       />
+      {editable.url ? (
+        <a
+          href={editable.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-8 items-center font-semibold text-secondary underline-offset-2 hover:underline"
+          aria-label={`${job.company_name}の${INTERVIEW_STAGE_LABELS[editable.stage]}に入室`}
+        >
+          入室
+        </a>
+      ) : null}
     </div>
   );
 }

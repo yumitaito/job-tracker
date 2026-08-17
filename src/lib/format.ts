@@ -22,12 +22,11 @@ export function formatDateTime(value: string | null | undefined): string {
   });
 }
 
-export function isToday(value: string | null | undefined): boolean {
+export function isToday(value: string | null | undefined, now: Date = new Date()): boolean {
   if (!value) return false;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return false;
 
-  const now = new Date();
   return (
     date.getFullYear() === now.getFullYear() &&
     date.getMonth() === now.getMonth() &&

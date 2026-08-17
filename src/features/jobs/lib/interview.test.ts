@@ -3,6 +3,7 @@ import type { Job } from "@/features/jobs/types/job";
 import {
   getInterviewProximitySortKey,
   getInterviewReminderKey,
+  getInterviewUrl,
   getJobInterviews,
   getLatestInterview,
   getMinutesUntilInterview,
@@ -28,6 +29,9 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_at: null,
     second_interview_at: null,
     final_interview_at: null,
+    first_interview_url: null,
+    second_interview_url: null,
+    final_interview_url: null,
     location: null,
     technologies: null,
     notes: null,
@@ -99,6 +103,28 @@ describe("INTERVIEW_STAGE_LABELS", () => {
     expect(INTERVIEW_STAGE_LABELS.first_interview).toBe("一次面接日時");
     expect(INTERVIEW_STAGE_LABELS.second_interview).toBe("二次面接日時");
     expect(INTERVIEW_STAGE_LABELS.final_interview).toBe("最終面接日時");
+  });
+});
+
+describe("getInterviewUrl", () => {
+  it("指定した段階の面接入室URLを返す", () => {
+    const job = createTestJob({
+      first_interview_url: "https://zoom.us/j/1",
+      second_interview_url: "https://zoom.us/j/2",
+      final_interview_url: "https://zoom.us/j/3",
+    });
+
+    expect(getInterviewUrl(job, "first_interview")).toBe("https://zoom.us/j/1");
+    expect(getInterviewUrl(job, "second_interview")).toBe("https://zoom.us/j/2");
+    expect(getInterviewUrl(job, "final_interview")).toBe("https://zoom.us/j/3");
+  });
+
+  it("未入力の段階はnullを返す", () => {
+    const job = createTestJob({ first_interview_url: "https://zoom.us/j/1" });
+
+    expect(getInterviewUrl(job, "first_interview")).toBe("https://zoom.us/j/1");
+    expect(getInterviewUrl(job, "second_interview")).toBeNull();
+    expect(getInterviewUrl(job, "final_interview")).toBeNull();
   });
 });
 

@@ -18,6 +18,9 @@ type JobRow = {
   first_interview_at: string | null;
   second_interview_at: string | null;
   final_interview_at: string | null;
+  first_interview_url: string | null;
+  second_interview_url: string | null;
+  final_interview_url: string | null;
   location: string | null;
   technologies: string[] | null;
   notes: string | null;
@@ -42,6 +45,9 @@ type JobInsert = {
   first_interview_at?: string | null;
   second_interview_at?: string | null;
   final_interview_at?: string | null;
+  first_interview_url?: string | null;
+  second_interview_url?: string | null;
+  final_interview_url?: string | null;
   location?: string | null;
   technologies?: string[] | null;
   notes?: string | null;
