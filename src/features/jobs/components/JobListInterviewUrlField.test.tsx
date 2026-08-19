@@ -39,6 +39,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
 describe("JobListInterviewUrlField", () => {
   it("表示中の段階にURLがある場合は入室ボタンを表示する", () => {
     const job = createTestJob({
+      status: "first_interview",
       first_interview_at: "2026-01-10T10:00:00.000Z",
       first_interview_url: "https://zoom.us/j/first",
     });
@@ -56,6 +57,7 @@ describe("JobListInterviewUrlField", () => {
 
   it("表示中の段階にURLがない場合は何も表示しない", () => {
     const job = createTestJob({
+      status: "first_interview",
       first_interview_at: "2026-01-10T10:00:00.000Z",
     });
 
@@ -66,6 +68,7 @@ describe("JobListInterviewUrlField", () => {
 
   it("二次面接が表示対象のとき、一次面接URLだけでは入室リンクを出さない", () => {
     const job = createTestJob({
+      status: "second_interview",
       first_interview_at: "2026-01-10T10:00:00.000Z",
       second_interview_at: "2026-01-20T14:00:00.000Z",
       first_interview_url: "https://zoom.us/j/first",
@@ -78,6 +81,7 @@ describe("JobListInterviewUrlField", () => {
 
   it("二次面接が表示対象で二次面接URLがある場合は二次面接の入室リンクを表示する", () => {
     const job = createTestJob({
+      status: "second_interview",
       company_name: "株式会社サンプル",
       first_interview_at: "2026-01-10T10:00:00.000Z",
       second_interview_at: "2026-01-20T14:00:00.000Z",
@@ -108,6 +112,7 @@ describe("JobListInterviewUrlField", () => {
 
   it("compactモードでは面接URLラベルを表示する", () => {
     const job = createTestJob({
+      status: "first_interview",
       first_interview_url: "https://zoom.us/j/first",
     });
 

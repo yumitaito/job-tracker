@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateJob } from "@/features/jobs/api/jobs-api";
 import { jobKeys } from "@/features/jobs/hooks/query-keys";
+import { pinOfferJobsToTop } from "@/features/jobs/lib/job-order";
 import type { Job, UpdateJobInput } from "@/features/jobs/types/job";
 
 function applyJobUpdate(job: Job, input: UpdateJobInput): Job {
@@ -23,7 +24,9 @@ export function useUpdateJobFromList() {
 
       queryClient.setQueriesData<Job[]>({ queryKey: jobKeys.lists() }, (jobs) => {
         if (!jobs) return jobs;
-        return jobs.map((job) => (job.id === id ? applyJobUpdate(job, input) : job));
+        return pinOfferJobsToTop(
+          jobs.map((job) => (job.id === id ? applyJobUpdate(job, input) : job)),
+        );
       });
 
       return { previousLists };
@@ -37,7 +40,9 @@ export function useUpdateJobFromList() {
       queryClient.setQueryData(jobKeys.detail(job.id), job);
       queryClient.setQueriesData<Job[]>({ queryKey: jobKeys.lists() }, (jobs) => {
         if (!jobs) return jobs;
-        return jobs.map((current) => (current.id === job.id ? job : current));
+        return pinOfferJobsToTop(
+          jobs.map((current) => (current.id === job.id ? job : current)),
+        );
       });
     },
   });

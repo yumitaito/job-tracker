@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { sortJobsByUpcomingInterview } from "@/features/jobs/lib/interview";
-import { toDisplayOrderUpdates } from "@/features/jobs/lib/job-order";
+import { pinOfferJobsToTop, toDisplayOrderUpdates } from "@/features/jobs/lib/job-order";
 import type { CreateJobInput, Job, JobSortOption, UpdateJobInput } from "@/features/jobs/types/job";
 
 const TABLE = "jobs";
@@ -36,7 +36,7 @@ export async function fetchJobs(sort: JobSortOption): Promise<Job[]> {
   if (sort === "interview_at_asc") {
     const { data, error } = await supabase.from(TABLE).select("*");
     if (error) throw new Error(error.message);
-    return sortJobsByUpcomingInterview(data ?? []);
+    return pinOfferJobsToTop(sortJobsByUpcomingInterview(data ?? []));
   }
 
   const { column, ascending } = SORT_COLUMN[sort];
@@ -52,7 +52,7 @@ export async function fetchJobs(sort: JobSortOption): Promise<Job[]> {
   const { data, error } = await query;
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return pinOfferJobsToTop(data ?? []);
 }
 
 export async function fetchJobById(id: string): Promise<Job | null> {

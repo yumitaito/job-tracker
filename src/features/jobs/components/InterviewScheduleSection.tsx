@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { useFieldArray, type Control, type FieldErrors, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, type Control, type FieldErrors, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { InterviewDateTimePicker } from "@/features/jobs/components/InterviewDateTimePicker";
 import { fromDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
 import {
   canAddInterviewScheduleKind,
@@ -155,13 +156,20 @@ export function InterviewScheduleSection({ control, errors }: InterviewScheduleS
                     </div>
                   ) : null}
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`interview_schedules.${index}.scheduled_at`}>日時</Label>
-                    <Input
-                      id={`interview_schedules.${index}.scheduled_at`}
-                      type="datetime-local"
-                      aria-invalid={Boolean(itemErrors?.scheduled_at)}
-                      {...control.register(`interview_schedules.${index}.scheduled_at`)}
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label htmlFor={`interview_schedules.${index}.scheduled_at`}>面接日時</Label>
+                    <Controller
+                      control={control}
+                      name={`interview_schedules.${index}.scheduled_at`}
+                      render={({ field }) => (
+                        <InterviewDateTimePicker
+                          id={`interview_schedules.${index}.scheduled_at`}
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          aria-invalid={Boolean(itemErrors?.scheduled_at)}
+                        />
+                      )}
                     />
                     {itemErrors?.scheduled_at?.message ? (
                       <p className="text-xs font-medium text-destructive">

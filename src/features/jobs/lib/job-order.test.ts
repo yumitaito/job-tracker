@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { applyJobOrder, reorderJobIds, toDisplayOrderUpdates } from "@/features/jobs/lib/job-order";
+import { applyJobOrder, normalizeOrderedJobIds, pinOfferJobsToTop, reorderJobIds, toDisplayOrderUpdates } from "@/features/jobs/lib/job-order";
 import type { Job } from "@/features/jobs/types/job";
 
-function createTestJob(id: string, display_order: number): Job {
+function createTestJob(id: string, display_order: number, status: Job["status"] = "not_applied"): Job {
   return {
     id,
     user_id: "user-1",
@@ -11,7 +11,7 @@ function createTestJob(id: string, display_order: number): Job {
     employment_type: null,
     application_url: null,
     application_date: null,
-    status: "not_applied",
+    status,
     desire_level: "medium",
     casual_interview_at: null,
     first_interview_at: null,
@@ -45,11 +45,46 @@ describe("reorderJobIds", () => {
   });
 });
 
+describe("pinOfferJobsToTop", () => {
+  it("内定求人を先頭へ移動し、それぞれのグループ内の順序は維持する", () => {
+    const jobs = [
+      createTestJob("a", 0),
+      createTestJob("b", 1, "offer"),
+      createTestJob("c", 2),
+      createTestJob("d", 3, "offer"),
+    ];
+
+    expect(pinOfferJobsToTop(jobs).map((job) => job.id)).toEqual(["b", "d", "a", "c"]);
+  });
+});
+
+describe("normalizeOrderedJobIds", () => {
+  it("内定求人の id を先頭へ正規化する", () => {
+    const jobs = [
+      createTestJob("a", 0),
+      createTestJob("b", 1, "offer"),
+      createTestJob("c", 2),
+    ];
+
+    expect(normalizeOrderedJobIds(jobs, ["c", "a", "b"])).toEqual(["b", "c", "a"]);
+  });
+});
+
 describe("applyJobOrder", () => {
   it("orderedIds の順序どおりに Job 配列を並べ替える", () => {
     const jobs = [createTestJob("a", 0), createTestJob("b", 1), createTestJob("c", 2)];
     const result = applyJobOrder(jobs, ["c", "a", "b"]);
     expect(result.map((job) => job.id)).toEqual(["c", "a", "b"]);
+  });
+
+  it("内定求人は並び替え後も先頭に来る", () => {
+    const jobs = [
+      createTestJob("a", 0),
+      createTestJob("b", 1, "offer"),
+      createTestJob("c", 2),
+    ];
+    const result = applyJobOrder(jobs, ["c", "a", "b"]);
+    expect(result.map((job) => job.id)).toEqual(["b", "c", "a"]);
   });
 });
 

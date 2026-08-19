@@ -9,7 +9,10 @@ import {
 export type LatestInterview = {
   stage: Extract<
     JobStatus,
-    "casual_interview" | "first_interview" | "second_interview" | "final_interview"
+    | "casual_interview"
+    | "first_interview"
+    | "second_interview"
+    | "final_interview"
   >;
   at: string;
 };
@@ -18,12 +21,13 @@ export type LatestInterview = {
 export type LegacyInterviewStage = LatestInterview["stage"];
 
 /** 面接日時の見出しラベル（選考ステータスバッジ用の`JOB_STATUS_LABELS`とは別に用意する） */
-export const INTERVIEW_STAGE_LABELS: Record<LatestInterview["stage"], string> = {
-  casual_interview: "カジュアル面接日時",
-  first_interview: "一次面接日時",
-  second_interview: "二次面接日時",
-  final_interview: "最終面接日時",
-};
+export const INTERVIEW_STAGE_LABELS: Record<LatestInterview["stage"], string> =
+  {
+    casual_interview: "カジュアル面接日時",
+    first_interview: "一次面接日時",
+    second_interview: "二次面接日時",
+    final_interview: "最終面接日時",
+  };
 
 export const INTERVIEW_URL_FIELDS = {
   casual_interview: "casual_interview_url",
@@ -32,7 +36,9 @@ export const INTERVIEW_URL_FIELDS = {
   final_interview: "final_interview_url",
 } as const satisfies Record<LatestInterview["stage"], keyof Job>;
 
-function isLegacyInterviewStage(kind: InterviewScheduleKind): kind is LatestInterview["stage"] {
+function isLegacyInterviewStage(
+  kind: InterviewScheduleKind,
+): kind is LatestInterview["stage"] {
   return kind in INTERVIEW_URL_FIELDS;
 }
 
@@ -40,7 +46,9 @@ export function getInterviewUrl(
   job: Job,
   stage: LatestInterview["stage"],
 ): string | null {
-  const schedule = getJobInterviewSchedules(job).find((item) => item.kind === stage);
+  const schedule = getJobInterviewSchedules(job).find(
+    (item) => item.kind === stage,
+  );
   if (schedule?.url) return schedule.url;
   return job[INTERVIEW_URL_FIELDS[stage]];
 }
@@ -48,7 +56,10 @@ export function getInterviewUrl(
 /** 求人に登録されている面接日時をすべて返す（未入力は除外）。 */
 export function getJobInterviews(job: Job): LatestInterview[] {
   return getJobInterviewSchedules(job)
-    .filter((schedule) => schedule.scheduled_at && isLegacyInterviewStage(schedule.kind))
+    .filter(
+      (schedule) =>
+        schedule.scheduled_at && isLegacyInterviewStage(schedule.kind),
+    )
     .map((schedule) => ({
       stage: schedule.kind as LatestInterview["stage"],
       at: schedule.scheduled_at!,
@@ -109,14 +120,19 @@ export function isFiveMinutesBeforeInterview(
 }
 
 /** 同一面接に対する通知の重複防止キー */
-export function getInterviewReminderKey(jobId: string, stage: string, at: string) {
+export function getInterviewReminderKey(
+  jobId: string,
+  stage: string,
+  at: string,
+) {
   return `${jobId}:${stage}:${at}`;
 }
 
 /** 求人の面接日時のうち、最も選考が進んだ旧4段階のものを1つ返す。未入力ならnull。 */
 export function getLatestInterview(job: Job): LatestInterview | null {
   const legacySchedules = getJobInterviewSchedules(job).filter(
-    (schedule) => schedule.scheduled_at && isLegacyInterviewStage(schedule.kind),
+    (schedule) =>
+      schedule.scheduled_at && isLegacyInterviewStage(schedule.kind),
   );
 
   if (legacySchedules.length === 0) return null;
@@ -149,34 +165,47 @@ export function getInterviewProximitySortKey(
   job: Job,
   now: Date = new Date(),
 ): InterviewProximitySortKey {
-  const schedules = getJobInterviewSchedules(job).filter((schedule) => schedule.scheduled_at);
-  const latestSchedule = schedules.reduce<(typeof schedules)[number] | null>((current, candidate) => {
-    if (!current) return candidate;
-    const currentTime = new Date(current.scheduled_at!).getTime();
-    const candidateTime = new Date(candidate.scheduled_at!).getTime();
-    const nowMs = now.getTime();
+  const schedules = getJobInterviewSchedules(job).filter(
+    (schedule) => schedule.scheduled_at,
+  );
+  const latestSchedule = schedules.reduce<(typeof schedules)[number] | null>(
+    (current, candidate) => {
+      if (!current) return candidate;
+      const currentTime = new Date(current.scheduled_at!).getTime();
+      const candidateTime = new Date(candidate.scheduled_at!).getTime();
+      const nowMs = now.getTime();
 
-    const currentIsFuture = currentTime >= nowMs;
-    const candidateIsFuture = candidateTime >= nowMs;
+      const currentIsFuture = currentTime >= nowMs;
+      const candidateIsFuture = candidateTime >= nowMs;
 
-    if (currentIsFuture !== candidateIsFuture) {
-      return candidateIsFuture ? candidate : current;
-    }
+      if (currentIsFuture !== candidateIsFuture) {
+        return candidateIsFuture ? candidate : current;
+      }
 
-    if (candidateIsFuture) {
-      return candidateTime < currentTime ? candidate : current;
-    }
+      if (candidateIsFuture) {
+        return candidateTime < currentTime ? candidate : current;
+      }
 
-    return candidateTime > currentTime ? candidate : current;
-  }, null);
+      return candidateTime > currentTime ? candidate : current;
+    },
+    null,
+  );
 
   if (!latestSchedule?.scheduled_at) {
-    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
+    return {
+      hasInterview: false,
+      timing: 1,
+      timestamp: Number.MAX_SAFE_INTEGER,
+    };
   }
 
   const timestamp = parseInterviewTimestamp(latestSchedule.scheduled_at);
   if (timestamp === null) {
-    return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
+    return {
+      hasInterview: false,
+      timing: 1,
+      timestamp: Number.MAX_SAFE_INTEGER,
+    };
   }
 
   const nowMs = now.getTime();
@@ -212,7 +241,10 @@ function compareInterviewProximitySortKeys(
 }
 
 /** 面接日時が近い順で求人を並び替える（元の配列は変更しない）。 */
-export function sortJobsByUpcomingInterview(jobs: Job[], now: Date = new Date()): Job[] {
+export function sortJobsByUpcomingInterview(
+  jobs: Job[],
+  now: Date = new Date(),
+): Job[] {
   return [...jobs].sort((left, right) => {
     const leftKey = getInterviewProximitySortKey(left, now);
     const rightKey = getInterviewProximitySortKey(right, now);
