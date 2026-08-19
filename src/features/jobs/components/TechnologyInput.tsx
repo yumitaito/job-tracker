@@ -41,7 +41,7 @@ export function TechnologyInput({
           }
         }}
         onBlur={addTech}
-        placeholder={placeholder ?? "例）React, TypeScript, AWS（Enterで追加）"}
+        placeholder={placeholder ?? "例）React, TypeScript"}
       />
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

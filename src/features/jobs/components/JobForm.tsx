@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { JapaneseYen, Loader2, Wand2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -375,6 +375,12 @@ export function JobForm({
             <Input placeholder="例）東京都渋谷区" {...register("location")} />
           </Field>
 
+          <Field label="最低年収" error={errors.min_salary?.message}>
+            <SalaryInput aria-invalid={Boolean(errors.min_salary)} {...register("min_salary")} />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Field label="使用技術" error={errors.technologies?.message}>
             <Controller
               control={control}
@@ -386,12 +392,6 @@ export function JobForm({
                 />
               )}
             />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Field label="最低年収" error={errors.min_salary?.message}>
-            <SalaryInput aria-invalid={Boolean(errors.min_salary)} {...register("min_salary")} />
           </Field>
 
           <Field label="最高年収" error={errors.max_salary?.message}>
@@ -464,17 +464,6 @@ function Field({
   );
 }
 
-function SalaryInput({
-  className,
-  ...props
-}: React.ComponentProps<"input">) {
-  return (
-    <div className="relative">
-      <JapaneseYen className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-      <Input type="number" min={0} className={`pl-9 pr-12 ${className ?? ""}`} {...props} />
-      <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-sm text-muted-foreground">
-        万円
-      </span>
-    </div>
-  );
+function SalaryInput(props: React.ComponentProps<"input">) {
+  return <Input type="number" min={0} {...props} />;
 }
