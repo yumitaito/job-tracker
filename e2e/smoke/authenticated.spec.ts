@@ -49,7 +49,7 @@ test.describe("ログイン済み状態のスモークテスト", () => {
     await expect(page.getByRole("heading", { name: "面接リマインダー通知" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "アカウント情報" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "セキュリティ" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "アカウント" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "アカウント", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "アカウントを削除" })).toBeVisible();
   });
 
