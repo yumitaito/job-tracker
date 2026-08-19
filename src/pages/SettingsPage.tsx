@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { User, Lock, LogOut, AlertTriangle, Save, Pencil, Trash2 } from "lucide-react";
+import { User, Lock, LogOut, Save, Pencil, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BackLink } from "@/components/layout/BackLink";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -47,7 +47,6 @@ export default function SettingsPage() {
         <PushNotificationSettings />
         <PasswordSection />
         <AccountSection />
-        <DangerZoneSection />
       </Card>
 
       {user.createdAt && (
@@ -234,61 +233,48 @@ function PasswordSection() {
 function AccountSection() {
   const navigate = useNavigate();
   const signOut = useSignOut();
-
-  return (
-    <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-      <div className="space-y-1">
-        <SectionHeading icon={<LogOut />}>アカウント</SectionHeading>
-        <p className="text-sm text-muted-foreground">アカウントからログアウトします。</p>
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={signOut.isPending}
-        onClick={() =>
-          signOut.mutate(undefined, {
-            onSuccess: () => navigate("/login", { replace: true }),
-          })
-        }
-        className="sm:shrink-0"
-      >
-        <LogOut />
-        {signOut.isPending ? "ログアウト中..." : "ログアウト"}
-      </Button>
-    </div>
-  );
-}
-
-function DangerZoneSection() {
-  const navigate = useNavigate();
   const deleteAccount = useDeleteAccount();
-  const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleConfirm = () => {
-    setError(null);
+  const handleDeleteConfirm = () => {
+    setDeleteError(null);
     deleteAccount.mutate(undefined, {
       onSuccess: () => navigate("/login", { replace: true }),
-      onError: (e) => setError(e.message),
+      onError: (e) => setDeleteError(e.message),
     });
   };
 
   return (
-    <div className="space-y-3 p-6 sm:p-8">
+    <div className="space-y-4 p-6 sm:p-8">
+      <SectionHeading icon={<LogOut />}>アカウント</SectionHeading>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h2 className="flex items-center gap-2 text-base font-bold text-destructive">
-            <AlertTriangle className="size-4" />
-            危険な操作
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            アカウントを削除すると、すべてのデータが完全に削除され、復元できません。
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">アカウントからログアウトします。</p>
         <Button
           type="button"
           variant="outline"
-          onClick={() => setOpen(true)}
+          disabled={signOut.isPending}
+          onClick={() =>
+            signOut.mutate(undefined, {
+              onSuccess: () => navigate("/login", { replace: true }),
+            })
+          }
+          className="sm:shrink-0"
+        >
+          <LogOut />
+          {signOut.isPending ? "ログアウト中..." : "ログアウト"}
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-start sm:justify-between">
+        <p className="text-sm text-muted-foreground sm:max-w-md">
+          アカウントを削除すると、すべてのデータが完全に削除され、復元できません。
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setDeleteOpen(true)}
           className="border-destructive/40 text-destructive hover:bg-destructive/10 sm:shrink-0"
         >
           <Trash2 />
@@ -296,16 +282,16 @@ function DangerZoneSection() {
         </Button>
       </div>
 
-      {error && (
+      {deleteError && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{deleteError}</AlertDescription>
         </Alert>
       )}
 
       <DeleteAccountDialog
-        open={open}
-        onOpenChange={setOpen}
-        onConfirm={handleConfirm}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDeleteConfirm}
         isDeleting={deleteAccount.isPending}
       />
     </div>

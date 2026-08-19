@@ -27,12 +27,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CompanyAvatar } from "@/features/jobs/components/CompanyAvatar";
-import { JobDragHandle } from "@/features/jobs/components/JobDragHandle";
 import {
   JobListDesireLevelField,
   JobListInterviewField,
   JobListInterviewUrlField,
   JobListStatusField,
+  stopSortablePointerDown,
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
 import { JobTable } from "@/features/jobs/components/JobTable";
@@ -74,20 +74,19 @@ function SortableJobTableRow({
       className={cn(
         "group",
         getPastInterviewSurfaceClassName(isPastInterview),
+        reorderEnabled && "cursor-grab touch-none active:cursor-grabbing",
         isDragging && "relative z-10 bg-muted/40 shadow-md",
       )}
+      aria-label={reorderEnabled ? `${job.company_name}の並び替え` : undefined}
+      {...(reorderEnabled ? attributes : {})}
+      {...(reorderEnabled ? listeners : {})}
     >
-      {reorderEnabled && (
-        <TableCell className="w-12 px-2">
-          <JobDragHandle
-            label={`${job.company_name}の並び替え`}
-            attributes={attributes}
-            listeners={listeners}
-          />
-        </TableCell>
-      )}
       <TableCell className="align-top py-4">
-        <Link to={`/jobs/${job.id}`} className="flex items-center gap-3">
+        <Link
+          to={`/jobs/${job.id}`}
+          className="flex items-center gap-3"
+          onPointerDown={stopSortablePointerDown}
+        >
           <CompanyAvatar name={job.company_name} />
           <div className="space-y-1">
             <p className="font-bold text-foreground">{job.company_name}</p>
@@ -110,7 +109,7 @@ function SortableJobTableRow({
       <TableCell className="align-top py-4">
         <JobListInterviewUrlField job={job} />
       </TableCell>
-      <TableCell>
+      <TableCell onPointerDown={stopSortablePointerDown}>
         <div className="flex items-center justify-end gap-2">
           <Button asChild variant="outline" size="sm">
             <Link to={`/jobs/${job.id}/edit`}>
@@ -187,7 +186,6 @@ export function JobSortableTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12 px-2" aria-label="並び替え" />
               <TableHead>企業名 / 職種</TableHead>
               <TableHead className="w-52">面接日時</TableHead>
               <TableHead className="w-24 whitespace-nowrap">志望度</TableHead>

@@ -79,12 +79,6 @@ export default function JobListPage() {
           onSortChange={setSort}
         />
 
-        {status === "all" && sort !== "display_order_asc" && filteredJobs.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            カードの並び替えを行うには、並び順で「カスタム順」を選んでください。
-          </p>
-        )}
-
         {status !== "all" && (jobs?.length ?? 0) > 0 && (
           <p className="text-sm text-muted-foreground">
             並び替えは「すべて」表示のときのみ利用できます。

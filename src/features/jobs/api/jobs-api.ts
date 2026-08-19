@@ -9,14 +9,13 @@ type DbJobSortOption = Exclude<JobSortOption, "interview_at_asc">;
 
 const SORT_COLUMN: Record<
   DbJobSortOption,
-  { column: "display_order" | "application_date" | "updated_at" | "company_name"; ascending: boolean }
+  { column: "display_order" | "application_date" | "updated_at"; ascending: boolean }
 > = {
   display_order_asc: { column: "display_order", ascending: true },
   application_date_desc: { column: "application_date", ascending: false },
   application_date_asc: { column: "application_date", ascending: true },
   updated_at_desc: { column: "updated_at", ascending: false },
   updated_at_asc: { column: "updated_at", ascending: true },
-  company_name_asc: { column: "company_name", ascending: true },
 };
 
 async function nextDisplayOrder(): Promise<number> {

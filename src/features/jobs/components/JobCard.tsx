@@ -7,6 +7,7 @@ import {
   JobListInterviewField,
   JobListInterviewUrlField,
   JobListStatusField,
+  stopSortablePointerDown,
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
@@ -37,7 +38,11 @@ export function JobCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <Link to={`/jobs/${job.id}`} className="flex flex-1 items-center gap-3 min-w-0">
+        <Link
+          to={`/jobs/${job.id}`}
+          className="flex flex-1 items-center gap-3 min-w-0"
+          onPointerDown={stopSortablePointerDown}
+        >
           <CompanyAvatar name={job.company_name} />
           <div className="min-w-0 space-y-0.5">
             <p className="truncate font-bold text-foreground">{job.company_name}</p>
@@ -78,7 +83,7 @@ export function JobCard({
         <JobListInterviewUrlField job={job} compact />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" onPointerDown={stopSortablePointerDown}>
         <Button asChild variant="outline" size="sm" className="flex-1">
           <Link to={`/jobs/${job.id}/edit`}>
             <Pencil />
