@@ -47,7 +47,9 @@ export default function JobNewPage() {
 
       <div className="space-y-1">
         <h1 className="text-2xl font-black text-foreground sm:text-3xl">求人を登録</h1>
-        <p className="text-sm text-muted-foreground">応募する求人の情報を入力してください。</p>
+        <p className="text-sm text-muted-foreground">
+          応募先URLを入力すると、企業名や職種などが自動入力されます。
+        </p>
       </div>
 
       <Card>
