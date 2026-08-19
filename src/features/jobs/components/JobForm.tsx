@@ -375,6 +375,12 @@ export function JobForm({
             <Input placeholder="例）東京都渋谷区" {...register("location")} />
           </Field>
 
+          <Field label="最低年収" error={errors.min_salary?.message}>
+            <SalaryInput aria-invalid={Boolean(errors.min_salary)} {...register("min_salary")} />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Field label="使用技術" error={errors.technologies?.message}>
             <Controller
               control={control}
@@ -386,12 +392,6 @@ export function JobForm({
                 />
               )}
             />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Field label="最低年収" error={errors.min_salary?.message}>
-            <SalaryInput aria-invalid={Boolean(errors.min_salary)} {...register("min_salary")} />
           </Field>
 
           <Field label="最高年収" error={errors.max_salary?.message}>
