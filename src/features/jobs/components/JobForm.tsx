@@ -469,7 +469,7 @@ function SalaryInput({
   ...props
 }: React.ComponentProps<"input">) {
   return (
-    <div className="relative w-44">
+    <div className="relative">
       <JapaneseYen className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input type="number" min={0} className={`pl-9 pr-12 ${className ?? ""}`} {...props} />
       <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-sm text-muted-foreground">
