@@ -34,7 +34,7 @@ export function getDefaultJobFormValues(): JobFormValues {
     employment_type: "",
     application_url: "",
     application_date: getTodayDateInputValue(),
-    status: "",
+    status: "document_screening",
     desire_level: "medium",
     interview_schedules: [],
     location: "",

@@ -191,18 +191,29 @@ describe("buildListInterviewDateUpdateInput", () => {
 });
 
 describe("shouldHideListInterviewDateTime", () => {
-  it("内定の場合は一覧の面接日時を非表示にする", () => {
+  it.each([
+    "not_applied",
+    "document_screening",
+    "offer",
+    "rejected",
+    "withdrawn",
+  ] as const)("選考ステータスが %s の場合は一覧の面接日時を非表示にする", (status) => {
     expect(
       shouldHideListInterviewDateTime(
         createTestJob({
-          status: "offer",
-          final_interview_at: "2026-02-01T16:30:00.000Z",
+          status,
+          first_interview_at: "2026-02-01T16:30:00.000Z",
         }),
       ),
     ).toBe(true);
   });
 
-  it("内定以外は面接日時を表示する", () => {
-    expect(shouldHideListInterviewDateTime(createTestJob({ status: "final_interview" }))).toBe(false);
+  it.each([
+    "casual_interview",
+    "first_interview",
+    "second_interview",
+    "final_interview",
+  ] as const)("面接中の選考ステータス %s では面接日時を表示する", (status) => {
+    expect(shouldHideListInterviewDateTime(createTestJob({ status }))).toBe(false);
   });
 });

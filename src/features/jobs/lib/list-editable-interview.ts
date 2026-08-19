@@ -50,9 +50,18 @@ function findScheduleForStatus(job: Job, stage: StatusInterviewStage): Interview
   return getJobInterviewSchedules(job).find((schedule) => schedule.kind === stage) ?? null;
 }
 
-/** 一覧で面接日時を表示しないステータス（内定後は次回面接がないため） */
+/** 一覧で面接日時を表示しない選考ステータス */
+const HIDDEN_LIST_INTERVIEW_STATUSES = new Set<JobStatus>([
+  "not_applied",
+  "document_screening",
+  "offer",
+  "rejected",
+  "withdrawn",
+]);
+
+/** 一覧で面接日時を表示しないステータスかどうか */
 export function shouldHideListInterviewDateTime(job: Job): boolean {
-  return job.status === "offer";
+  return HIDDEN_LIST_INTERVIEW_STATUSES.has(job.status);
 }
 
 /** 一覧で編集対象となる面接日時（現在の選考ステータスに対応する段階）を返す。 */
@@ -61,8 +70,7 @@ export function getListEditableInterview(job: Job): ListEditableInterview {
     return {
       scheduleId: "",
       stage: "first_interview",
-      label: INTERVIEW_SCHEDULE_KIND_LABELS.first_interview,
-      field: "first_interview_at",
+      label: "面接日時",
       at: null,
       url: null,
     };

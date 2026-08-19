@@ -73,6 +73,7 @@ describe("getDefaultJobFormValues", () => {
     const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
     expect(values.application_date).toBe(expected);
+    expect(values.status).toBe("document_screening");
     expect(values.interview_schedules).toEqual([]);
   });
 });
