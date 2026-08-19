@@ -25,6 +25,7 @@ create table if not exists public.jobs (
   first_interview_url text, -- 一次面接入室URL（任意項目）
   second_interview_url text, -- 二次面接入室URL（任意項目）
   final_interview_url text, -- 最終面接入室URL（任意項目）
+  interview_schedules jsonb not null default '[]'::jsonb, -- 柔軟な選考スケジュール
   location text,
   technologies text[],
   notes text,

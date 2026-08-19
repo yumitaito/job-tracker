@@ -1,4 +1,10 @@
 import type { Job, JobStatus } from "@/features/jobs/types/job";
+import type { InterviewScheduleKind } from "@/features/jobs/types/interview-schedule";
+import {
+  getInterviewScheduleLabel,
+  getJobInterviewSchedules,
+  sortInterviewSchedules,
+} from "@/features/jobs/lib/interview-schedules";
 
 export type LatestInterview = {
   stage: Extract<
@@ -7,6 +13,9 @@ export type LatestInterview = {
   >;
   at: string;
 };
+
+/** 選考ステータスと対応するスケジュール種別（旧カラム互換用） */
+export type LegacyInterviewStage = LatestInterview["stage"];
 
 /** 面接日時の見出しラベル（選考ステータスバッジ用の`JOB_STATUS_LABELS`とは別に用意する） */
 export const INTERVIEW_STAGE_LABELS: Record<LatestInterview["stage"], string> = {
@@ -23,29 +32,42 @@ export const INTERVIEW_URL_FIELDS = {
   final_interview: "final_interview_url",
 } as const satisfies Record<LatestInterview["stage"], keyof Job>;
 
+function isLegacyInterviewStage(kind: InterviewScheduleKind): kind is LatestInterview["stage"] {
+  return kind in INTERVIEW_URL_FIELDS;
+}
+
 export function getInterviewUrl(
   job: Job,
   stage: LatestInterview["stage"],
 ): string | null {
+  const schedule = getJobInterviewSchedules(job).find((item) => item.kind === stage);
+  if (schedule?.url) return schedule.url;
   return job[INTERVIEW_URL_FIELDS[stage]];
 }
 
 /** 求人に登録されている面接日時をすべて返す（未入力は除外）。 */
 export function getJobInterviews(job: Job): LatestInterview[] {
-  const interviews: LatestInterview[] = [];
-  if (job.casual_interview_at) {
-    interviews.push({ stage: "casual_interview", at: job.casual_interview_at });
-  }
-  if (job.first_interview_at) {
-    interviews.push({ stage: "first_interview", at: job.first_interview_at });
-  }
-  if (job.second_interview_at) {
-    interviews.push({ stage: "second_interview", at: job.second_interview_at });
-  }
-  if (job.final_interview_at) {
-    interviews.push({ stage: "final_interview", at: job.final_interview_at });
-  }
-  return interviews;
+  return getJobInterviewSchedules(job)
+    .filter((schedule) => schedule.scheduled_at && isLegacyInterviewStage(schedule.kind))
+    .map((schedule) => ({
+      stage: schedule.kind as LatestInterview["stage"],
+      at: schedule.scheduled_at!,
+    }));
+}
+
+/** リマインダー等で使う、日時付きの全選考スケジュール */
+export function getAllScheduledInterviewEntries(job: Job) {
+  return getJobInterviewSchedules(job)
+    .filter((schedule) => schedule.scheduled_at)
+    .map((schedule) => ({
+      schedule,
+      label: getInterviewScheduleLabel(schedule),
+      at: schedule.scheduled_at!,
+      url: schedule.url ?? null,
+      reminderStage: isLegacyInterviewStage(schedule.kind)
+        ? schedule.kind
+        : (`schedule:${schedule.id}` as const),
+    }));
 }
 
 /** 面接開始までの残り分数。過去・不正な日時の場合はnull。 */
@@ -87,17 +109,25 @@ export function isFiveMinutesBeforeInterview(
 }
 
 /** 同一面接に対する通知の重複防止キー */
-export function getInterviewReminderKey(jobId: string, stage: LatestInterview["stage"], at: string) {
+export function getInterviewReminderKey(jobId: string, stage: string, at: string) {
   return `${jobId}:${stage}:${at}`;
 }
 
-/** 求人の面接日時のうち、最も選考が進んだ段階のものを1つ返す。未入力ならnull。 */
+/** 求人の面接日時のうち、最も選考が進んだ旧4段階のものを1つ返す。未入力ならnull。 */
 export function getLatestInterview(job: Job): LatestInterview | null {
-  if (job.final_interview_at) return { stage: "final_interview", at: job.final_interview_at };
-  if (job.second_interview_at) return { stage: "second_interview", at: job.second_interview_at };
-  if (job.first_interview_at) return { stage: "first_interview", at: job.first_interview_at };
-  if (job.casual_interview_at) return { stage: "casual_interview", at: job.casual_interview_at };
-  return null;
+  const legacySchedules = getJobInterviewSchedules(job).filter(
+    (schedule) => schedule.scheduled_at && isLegacyInterviewStage(schedule.kind),
+  );
+
+  if (legacySchedules.length === 0) return null;
+
+  const latest = sortInterviewSchedules(legacySchedules).at(-1);
+  if (!latest?.scheduled_at) return null;
+
+  return {
+    stage: latest.kind as LatestInterview["stage"],
+    at: latest.scheduled_at,
+  };
 }
 
 type InterviewProximitySortKey = {
@@ -119,12 +149,32 @@ export function getInterviewProximitySortKey(
   job: Job,
   now: Date = new Date(),
 ): InterviewProximitySortKey {
-  const latestInterview = getLatestInterview(job);
-  if (!latestInterview) {
+  const schedules = getJobInterviewSchedules(job).filter((schedule) => schedule.scheduled_at);
+  const latestSchedule = schedules.reduce<(typeof schedules)[number] | null>((current, candidate) => {
+    if (!current) return candidate;
+    const currentTime = new Date(current.scheduled_at!).getTime();
+    const candidateTime = new Date(candidate.scheduled_at!).getTime();
+    const nowMs = now.getTime();
+
+    const currentIsFuture = currentTime >= nowMs;
+    const candidateIsFuture = candidateTime >= nowMs;
+
+    if (currentIsFuture !== candidateIsFuture) {
+      return candidateIsFuture ? candidate : current;
+    }
+
+    if (candidateIsFuture) {
+      return candidateTime < currentTime ? candidate : current;
+    }
+
+    return candidateTime > currentTime ? candidate : current;
+  }, null);
+
+  if (!latestSchedule?.scheduled_at) {
     return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
   }
 
-  const timestamp = parseInterviewTimestamp(latestInterview.at);
+  const timestamp = parseInterviewTimestamp(latestSchedule.scheduled_at);
   if (timestamp === null) {
     return { hasInterview: false, timing: 1, timestamp: Number.MAX_SAFE_INTEGER };
   }

@@ -10,7 +10,7 @@ import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { useJob } from "@/features/jobs/hooks/use-job";
 import { useUpdateJob } from "@/features/jobs/hooks/use-update-job";
 import { jobToFormValues } from "@/features/jobs/lib/job-mappers";
-import type { JobFormOutput } from "@/features/jobs/schemas/job-schema";
+import { buildInterviewPayloadFromForm, type JobFormOutput } from "@/features/jobs/schemas/job-schema";
 import type { DesireLevel, JobStatus, UpdateJobInput } from "@/features/jobs/types/job";
 
 export default function JobEditPage() {
@@ -72,14 +72,7 @@ export default function JobEditPage() {
       application_date: values.application_date ?? null,
       status: values.status as JobStatus,
       desire_level: values.desire_level as DesireLevel,
-      casual_interview_at: values.casual_interview_at ?? null,
-      first_interview_at: values.first_interview_at ?? null,
-      second_interview_at: values.second_interview_at ?? null,
-      final_interview_at: values.final_interview_at ?? null,
-      casual_interview_url: values.casual_interview_url ?? null,
-      first_interview_url: values.first_interview_url ?? null,
-      second_interview_url: values.second_interview_url ?? null,
-      final_interview_url: values.final_interview_url ?? null,
+      ...buildInterviewPayloadFromForm(values.interview_schedules),
       location: values.location ?? null,
       technologies: values.technologies.length > 0 ? values.technologies : null,
       notes: values.notes ?? null,

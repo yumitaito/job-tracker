@@ -52,8 +52,9 @@
   --status-second-interview-fg: #6d3df5;
   --status-final-interview-bg: #f1e4fc;
   --status-final-interview-fg: #7b2fd6;
-  --status-offer-bg: #f2f8d9;
-  --status-offer-fg: #4b5320;
+  --status-offer-bg: #dcfce7;
+  --status-offer-fg: #166534;
+  --status-offer-border: #bbf7d0;
   --status-rejected-bg: #f6ece7;
   --status-rejected-fg: #965244;
   --status-withdrawn-bg: #eef0f1;

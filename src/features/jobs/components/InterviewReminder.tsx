@@ -5,10 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import {
+  getAllScheduledInterviewEntries,
   getInterviewReminderKey,
-  getInterviewUrl,
-  getJobInterviews,
-  INTERVIEW_STAGE_LABELS,
   isFiveMinutesBeforeInterview,
 } from "@/features/jobs/lib/interview";
 import { formatDateTime } from "@/lib/format";
@@ -53,19 +51,19 @@ export function InterviewReminder() {
       const nextAlerts: InterviewReminderAlert[] = [];
 
       for (const job of jobs) {
-        for (const interview of getJobInterviews(job)) {
+        for (const interview of getAllScheduledInterviewEntries(job)) {
           if (!isFiveMinutesBeforeInterview(interview.at, now)) continue;
 
-          const key = getInterviewReminderKey(job.id, interview.stage, interview.at);
+          const key = getInterviewReminderKey(job.id, interview.reminderStage, interview.at);
           if (notifiedKeysRef.current.has(key)) continue;
 
           notifiedKeysRef.current.add(key);
           nextAlerts.push({
             key,
             companyName: job.company_name,
-            stageLabel: INTERVIEW_STAGE_LABELS[interview.stage],
+            stageLabel: interview.label,
             at: interview.at,
-            url: getInterviewUrl(job, interview.stage),
+            url: interview.url,
           });
         }
       }

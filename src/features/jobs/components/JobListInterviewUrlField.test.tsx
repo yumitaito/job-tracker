@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { JobListInterviewUrlField } from "./JobListInlineFields";
-import { INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
+import { INTERVIEW_SCHEDULE_KIND_LABELS } from "@/features/jobs/types/interview-schedule";
 import type { Job } from "@/features/jobs/types/job";
 
 function createTestJob(overrides: Partial<Job> = {}): Job {
@@ -23,6 +23,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
+    interview_schedules: null,
     location: null,
     technologies: null,
     notes: null,
@@ -36,7 +37,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
 }
 
 describe("JobListInterviewUrlField", () => {
-  it("表示中の段階にURLがある場合は入室リンクを表示する", () => {
+  it("表示中の段階にURLがある場合は入室ボタンを表示する", () => {
     const job = createTestJob({
       first_interview_at: "2026-01-10T10:00:00.000Z",
       first_interview_url: "https://zoom.us/j/first",
@@ -45,7 +46,7 @@ describe("JobListInterviewUrlField", () => {
     render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
-      name: `${job.company_name}の${INTERVIEW_STAGE_LABELS.first_interview}に入室`,
+      name: `${job.company_name}の${INTERVIEW_SCHEDULE_KIND_LABELS.first_interview}に入室`,
     });
     expect(link).toHaveTextContent("入室");
     expect(link).toHaveAttribute("href", "https://zoom.us/j/first");
@@ -86,7 +87,7 @@ describe("JobListInterviewUrlField", () => {
     render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
-      name: `株式会社サンプルの${INTERVIEW_STAGE_LABELS.second_interview}に入室`,
+      name: `株式会社サンプルの${INTERVIEW_SCHEDULE_KIND_LABELS.second_interview}に入室`,
     });
     expect(link).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
@@ -100,7 +101,7 @@ describe("JobListInterviewUrlField", () => {
     render(<JobListInterviewUrlField job={job} />);
 
     const link = screen.getByRole("link", {
-      name: `${job.company_name}の${INTERVIEW_STAGE_LABELS.final_interview}に入室`,
+      name: `${job.company_name}の${INTERVIEW_SCHEDULE_KIND_LABELS.final_interview}に入室`,
     });
     expect(link).toHaveAttribute("href", "https://zoom.us/j/final");
   });

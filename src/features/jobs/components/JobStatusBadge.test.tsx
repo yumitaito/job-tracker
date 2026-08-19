@@ -15,4 +15,11 @@ describe("JobStatusBadge", () => {
       expect(JOB_STATUS_LABELS[status]).toBeTruthy();
     }
   });
+
+  it("内定の場合はグリーン系バッジを表示する", () => {
+    render(<JobStatusBadge status="offer" />);
+    const badge = screen.getByText("内定");
+    expect(badge).toHaveClass("bg-[var(--status-offer-bg)]");
+    expect(badge).toHaveClass("text-[var(--status-offer-fg)]");
+  });
 });

@@ -18,8 +18,10 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TechnologyInput } from "@/features/jobs/components/TechnologyInput";
+import { InterviewScheduleSection } from "@/features/jobs/components/InterviewScheduleSection";
 import { useFetchJobMetadata } from "@/features/jobs/hooks/use-fetch-job-metadata";
 import type { JobMetadata } from "@/features/jobs/api/job-metadata-api";
+import { getDefaultJobFormValues } from "@/features/jobs/lib/job-mappers";
 import { STATUS_GROUPS } from "@/features/jobs/lib/job-status-groups";
 import {
   jobFormSchema,
@@ -40,28 +42,7 @@ const isLikelyUrl = (value: string) => {
   }
 };
 
-const EMPTY_VALUES: JobFormValues = {
-  company_name: "",
-  position: "",
-  employment_type: "",
-  application_url: "",
-  application_date: "",
-  status: "",
-  desire_level: "medium",
-  casual_interview_at: "",
-  first_interview_at: "",
-  second_interview_at: "",
-  final_interview_at: "",
-  casual_interview_url: "",
-  first_interview_url: "",
-  second_interview_url: "",
-  final_interview_url: "",
-  location: "",
-  technologies: [],
-  notes: "",
-  min_salary: "",
-  max_salary: "",
-};
+const EMPTY_VALUES: JobFormValues = getDefaultJobFormValues();
 
 type JobFormProps = {
   defaultValues?: JobFormValues;
@@ -291,81 +272,9 @@ export function JobForm({
             />
           </Field>
         </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-4">
-            <Field label="カジュアル面接日時" error={errors.casual_interview_at?.message}>
-              <Input
-                type="datetime-local"
-                aria-invalid={Boolean(errors.casual_interview_at)}
-                {...register("casual_interview_at")}
-              />
-            </Field>
-            <Field label="カジュアル面接URL" error={errors.casual_interview_url?.message}>
-              <Input
-                type="url"
-                placeholder="例）https://zoom.us/j/..."
-                aria-invalid={Boolean(errors.casual_interview_url)}
-                {...register("casual_interview_url")}
-              />
-            </Field>
-          </div>
-
-          <div className="space-y-4">
-            <Field label="一次面接日時" error={errors.first_interview_at?.message}>
-              <Input
-                type="datetime-local"
-                aria-invalid={Boolean(errors.first_interview_at)}
-                {...register("first_interview_at")}
-              />
-            </Field>
-            <Field label="一次面接URL" error={errors.first_interview_url?.message}>
-              <Input
-                type="url"
-                placeholder="例）https://zoom.us/j/..."
-                aria-invalid={Boolean(errors.first_interview_url)}
-                {...register("first_interview_url")}
-              />
-            </Field>
-          </div>
-
-          <div className="space-y-4">
-            <Field label="二次面接日時" error={errors.second_interview_at?.message}>
-              <Input
-                type="datetime-local"
-                aria-invalid={Boolean(errors.second_interview_at)}
-                {...register("second_interview_at")}
-              />
-            </Field>
-            <Field label="二次面接URL" error={errors.second_interview_url?.message}>
-              <Input
-                type="url"
-                placeholder="例）https://zoom.us/j/..."
-                aria-invalid={Boolean(errors.second_interview_url)}
-                {...register("second_interview_url")}
-              />
-            </Field>
-          </div>
-
-          <div className="space-y-4">
-            <Field label="最終面接日時" error={errors.final_interview_at?.message}>
-              <Input
-                type="datetime-local"
-                aria-invalid={Boolean(errors.final_interview_at)}
-                {...register("final_interview_at")}
-              />
-            </Field>
-            <Field label="最終面接URL" error={errors.final_interview_url?.message}>
-              <Input
-                type="url"
-                placeholder="例）https://zoom.us/j/..."
-                aria-invalid={Boolean(errors.final_interview_url)}
-                {...register("final_interview_url")}
-              />
-            </Field>
-          </div>
-        </div>
       </section>
+
+      <InterviewScheduleSection control={control} errors={errors} />
 
       <section className="space-y-4">
         <SectionHeading>詳細情報</SectionHeading>

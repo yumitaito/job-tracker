@@ -11,8 +11,7 @@ import {
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { getJobListSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -27,14 +26,13 @@ export function JobCard({
   onUpdateJob: JobListFieldUpdater;
   updatingJobId?: string | null;
 }) {
-  const isPastInterview = isJobInterviewPast(job);
   const isUpdating = updatingJobId === job.id;
 
   return (
     <div
       className={cn(
         "space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm",
-        getPastInterviewSurfaceClassName(isPastInterview),
+        getJobListSurfaceClassName(job.status),
       )}
     >
       <div className="flex items-start justify-between gap-2">

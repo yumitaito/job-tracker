@@ -28,7 +28,10 @@ import { DeleteJobDialog } from "@/features/jobs/components/DeleteJobDialog";
 import { QueryErrorState } from "@/features/jobs/components/QueryErrorState";
 import { useJob } from "@/features/jobs/hooks/use-job";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
-import { JOB_STATUS_LABELS } from "@/features/jobs/types/job";
+import {
+  getInterviewScheduleLabel,
+  getJobInterviewSchedules,
+} from "@/features/jobs/lib/interview-schedules";
 import { formatDate, formatDateTime, formatSalary } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -150,42 +153,21 @@ export default function JobDetailPage() {
             ) : null}
             <InfoItem icon={<Tag />} label="選考ステータス" value={<JobStatusBadge status={job.status} />} />
             <InfoItem icon={<Tag />} label="志望度" value={<DesireLevelBadge level={job.desire_level} />} />
-            <InfoItem
-              icon={<CalendarClock />}
-              label={JOB_STATUS_LABELS.casual_interview}
-              value={
-                job.casual_interview_at || job.casual_interview_url ? (
-                  <InterviewInfoValue at={job.casual_interview_at} url={job.casual_interview_url} />
-                ) : null
-              }
-            />
-            <InfoItem
-              icon={<CalendarClock />}
-              label={JOB_STATUS_LABELS.first_interview}
-              value={
-                job.first_interview_at || job.first_interview_url ? (
-                  <InterviewInfoValue at={job.first_interview_at} url={job.first_interview_url} />
-                ) : null
-              }
-            />
-            <InfoItem
-              icon={<CalendarClock />}
-              label={JOB_STATUS_LABELS.second_interview}
-              value={
-                job.second_interview_at || job.second_interview_url ? (
-                  <InterviewInfoValue at={job.second_interview_at} url={job.second_interview_url} />
-                ) : null
-              }
-            />
-            <InfoItem
-              icon={<CalendarClock />}
-              label={JOB_STATUS_LABELS.final_interview}
-              value={
-                job.final_interview_at || job.final_interview_url ? (
-                  <InterviewInfoValue at={job.final_interview_at} url={job.final_interview_url} />
-                ) : null
-              }
-            />
+            {getJobInterviewSchedules(job).map((schedule) => (
+              <InfoItem
+                key={schedule.id}
+                icon={<CalendarClock />}
+                label={getInterviewScheduleLabel(schedule)}
+                value={
+                  schedule.scheduled_at || schedule.url ? (
+                    <InterviewInfoValue
+                      at={schedule.scheduled_at ?? null}
+                      url={schedule.url ?? null}
+                    />
+                  ) : null
+                }
+              />
+            ))}
             <InfoItem icon={<MapPin />} label="勤務地" value={job.location} />
             <InfoItem
               icon={<Code2 />}

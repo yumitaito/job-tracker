@@ -20,10 +20,20 @@ const CORS_HEADERS: Record<string, string> = {
 };
 
 const STAGE_LABELS: Record<string, string> = {
-  casual_interview: "カジュアル面接日時",
-  first_interview: "一次面接日時",
-  second_interview: "二次面接日時",
-  final_interview: "最終面接日時",
+  casual_interview: "カジュアル面談",
+  first_interview: "一次面接",
+  second_interview: "二次面接",
+  third_interview: "三次面接",
+  final_interview: "最終面接",
+  other: "選考",
+};
+
+type InterviewSchedule = {
+  id: string;
+  kind: string;
+  custom_label?: string | null;
+  scheduled_at?: string | null;
+  url?: string | null;
 };
 
 type InterviewCandidate = {
@@ -88,21 +98,53 @@ function collectInterviewCandidates(
     second_interview_url: string | null;
     final_interview_url: string | null;
     casual_interview_url: string | null;
+    interview_schedules: InterviewSchedule[] | null;
   }>,
   now: Date,
 ): InterviewCandidate[] {
   const candidates: InterviewCandidate[] = [];
+  const legacyStages = new Set<InterviewCandidate["stage"]>([
+    "casual_interview",
+    "first_interview",
+    "second_interview",
+    "final_interview",
+  ]);
 
   for (const job of jobs) {
-    const entries: Array<[InterviewCandidate["stage"], string | null, string | null]> = [
+    const schedules = Array.isArray(job.interview_schedules) ? job.interview_schedules : [];
+    const seen = new Set<string>();
+
+    for (const schedule of schedules) {
+      if (!schedule.scheduled_at || !isWithinReminderWindow(schedule.scheduled_at, now)) continue;
+      if (!legacyStages.has(schedule.kind as InterviewCandidate["stage"])) continue;
+
+      const stage = schedule.kind as InterviewCandidate["stage"];
+      const key = `${stage}:${schedule.scheduled_at}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      candidates.push({
+        jobId: job.id,
+        userId: job.user_id,
+        companyName: job.company_name,
+        stage,
+        at: schedule.scheduled_at,
+        interviewUrl: schedule.url ?? null,
+      });
+    }
+
+    const legacyEntries: Array<[InterviewCandidate["stage"], string | null, string | null]> = [
       ["casual_interview", job.casual_interview_at, job.casual_interview_url],
       ["first_interview", job.first_interview_at, job.first_interview_url],
       ["second_interview", job.second_interview_at, job.second_interview_url],
       ["final_interview", job.final_interview_at, job.final_interview_url],
     ];
 
-    for (const [stage, at, interviewUrl] of entries) {
+    for (const [stage, at, interviewUrl] of legacyEntries) {
       if (!at || !isWithinReminderWindow(at, now)) continue;
+      const key = `${stage}:${at}`;
+      if (seen.has(key)) continue;
+
       candidates.push({
         jobId: job.id,
         userId: job.user_id,

@@ -2,10 +2,35 @@ import {
   JOB_SORT_LABELS,
   JOB_STATUSES,
   type JobSortOption,
+  type JobStatus,
   type JobStatusFilter,
 } from "@/features/jobs/types/job";
 
 export const JOB_LIST_FILTERS_STORAGE_KEY = "job-tracker-list-filters";
+
+/** 一覧フィルターのトップレベル（グループ外） */
+export const JOB_LIST_TOP_LEVEL_STATUSES: JobStatus[] = ["not_applied"];
+
+/** 一覧フィルターのグループ表示 */
+export const JOB_LIST_STATUS_FILTER_GROUPS: {
+  label: string;
+  statuses: JobStatus[];
+}[] = [
+  {
+    label: "進行中",
+    statuses: [
+      "document_screening",
+      "casual_interview",
+      "first_interview",
+      "second_interview",
+      "final_interview",
+    ],
+  },
+  {
+    label: "終了",
+    statuses: ["offer", "rejected", "withdrawn"],
+  },
+];
 
 export type JobListFilters = {
   sort: JobSortOption;

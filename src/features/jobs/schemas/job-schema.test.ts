@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { jobFormSchema } from "./job-schema";
+import { buildInterviewPayloadFromForm, jobFormSchema } from "./job-schema";
 
 const baseValues = {
   company_name: "テスト株式会社",
@@ -9,14 +9,7 @@ const baseValues = {
   application_date: undefined,
   status: "not_applied" as const,
   desire_level: "medium" as const,
-  casual_interview_at: undefined,
-  first_interview_at: undefined,
-  second_interview_at: undefined,
-  final_interview_at: undefined,
-  casual_interview_url: undefined,
-  first_interview_url: undefined,
-  second_interview_url: undefined,
-  final_interview_url: undefined,
+  interview_schedules: [],
   location: undefined,
   technologies: [],
   notes: undefined,
@@ -24,83 +17,92 @@ const baseValues = {
   max_salary: undefined,
 };
 
-describe("jobFormSchema - 面接日時（optionalDateTimeLocal）", () => {
+const schedule = (overrides: {
+  id?: string;
+  kind: string;
+  custom_label?: string;
+  scheduled_at?: string;
+  url?: string;
+}) => ({
+  id: overrides.id ?? "schedule-1",
+  kind: overrides.kind,
+  custom_label: overrides.custom_label ?? "",
+  scheduled_at: overrides.scheduled_at ?? "",
+  url: overrides.url ?? "",
+});
+
+describe("jobFormSchema - 選考スケジュール", () => {
   it("有効なdatetime-local文字列はISO文字列に変換されてバリデーションを通過する", () => {
     const result = jobFormSchema.safeParse({
       ...baseValues,
-      first_interview_at: "2026-08-07T18:30",
+      interview_schedules: [schedule({ kind: "first_interview", scheduled_at: "2026-08-07T18:30" })],
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
       const expectedIso = new Date(2026, 7, 7, 18, 30).toISOString();
-      expect(result.data.first_interview_at).toBe(expectedIso);
+      expect(result.data.interview_schedules[0]?.scheduled_at).toBe(expectedIso);
     }
   });
 
-  it("未入力（undefined）の場合はundefinedのままエラーにならない", () => {
+  it("空文字の日時はundefinedとして扱われエラーにならない", () => {
     const result = jobFormSchema.safeParse({
       ...baseValues,
-      second_interview_at: undefined,
+      interview_schedules: [schedule({ kind: "final_interview", scheduled_at: "" })],
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.second_interview_at).toBeUndefined();
-    }
-  });
-
-  it("空文字の場合はundefinedとして扱われエラーにならない", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      final_interview_at: "",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.final_interview_at).toBeUndefined();
-    }
-  });
-
-  it("空白のみの文字列もundefinedとして扱われエラーにならない", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_at: "   ",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_at).toBeUndefined();
+      expect(result.data.interview_schedules[0]?.scheduled_at).toBeUndefined();
     }
   });
 
   it("不正な日時文字列の場合はバリデーションエラーになる", () => {
     const result = jobFormSchema.safeParse({
       ...baseValues,
-      first_interview_at: "not-a-valid-datetime",
+      interview_schedules: [schedule({ kind: "first_interview", scheduled_at: "not-a-valid-datetime" })],
     });
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      const issue = result.error.issues.find((i) => i.path[0] === "first_interview_at");
+      const issue = result.error.issues.find((i) => i.path.join(".") === "interview_schedules.0.scheduled_at");
       expect(issue?.message).toBe("日時の形式が正しくありません");
     }
   });
 
-  it("3つの面接日時すべてに有効な値を設定できる", () => {
+  it("有効なURLはトリムされてバリデーションを通過する", () => {
     const result = jobFormSchema.safeParse({
       ...baseValues,
-      first_interview_at: "2026-01-10T10:00",
-      second_interview_at: "2026-01-20T14:00",
-      final_interview_at: "2026-02-01T16:30",
+      interview_schedules: [schedule({ kind: "first_interview", url: "https://zoom.us/j/123" })],
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.first_interview_at).toBe(new Date(2026, 0, 10, 10, 0).toISOString());
-      expect(result.data.second_interview_at).toBe(new Date(2026, 0, 20, 14, 0).toISOString());
-      expect(result.data.final_interview_at).toBe(new Date(2026, 1, 1, 16, 30).toISOString());
+      expect(result.data.interview_schedules[0]?.url).toBe("https://zoom.us/j/123");
     }
+  });
+
+  it("その他の選考は名称が必須", () => {
+    const result = jobFormSchema.safeParse({
+      ...baseValues,
+      interview_schedules: [schedule({ kind: "other", custom_label: "" })],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("buildInterviewPayloadFromForm は旧カラムへ同期する", () => {
+    const parsed = jobFormSchema.parse({
+      ...baseValues,
+      interview_schedules: [
+        schedule({ id: "1", kind: "first_interview", scheduled_at: "2026-08-07T18:30", url: "https://zoom.us/j/1" }),
+      ],
+    });
+
+    const payload = buildInterviewPayloadFromForm(parsed.interview_schedules);
+    expect(payload.first_interview_at).toBe(new Date(2026, 7, 7, 18, 30).toISOString());
+    expect(payload.first_interview_url).toBe("https://zoom.us/j/1");
+    expect(payload.interview_schedules).toHaveLength(1);
   });
 });
 
@@ -122,110 +124,5 @@ describe("jobFormSchema - 回帰確認（必須項目・既存バリデーショ
       max_salary: 500,
     });
     expect(result.success).toBe(false);
-  });
-});
-
-describe("jobFormSchema - 面接URL（optionalUrl）", () => {
-  it("空文字の場合はundefinedとして扱われエラーにならない", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_url).toBeUndefined();
-    }
-  });
-
-  it("空白のみの文字列もundefinedとして扱われエラーにならない", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      second_interview_url: "   ",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.second_interview_url).toBeUndefined();
-    }
-  });
-
-  it("有効なURLはトリムされてバリデーションを通過する", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "https://zoom.us/j/123",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_url).toBe("https://zoom.us/j/123");
-    }
-  });
-
-  it("前後の空白がある有効なURLはトリムされる", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "  https://zoom.us/j/123  ",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_url).toBe("https://zoom.us/j/123");
-    }
-  });
-
-  it("3つの面接URLすべてに有効な値を設定できる", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "https://zoom.us/j/1",
-      second_interview_url: "https://meet.google.com/abc-defg-hij",
-      final_interview_url: "https://teams.microsoft.com/l/meetup-join/1",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_url).toBe("https://zoom.us/j/1");
-      expect(result.data.second_interview_url).toBe("https://meet.google.com/abc-defg-hij");
-      expect(result.data.final_interview_url).toBe("https://teams.microsoft.com/l/meetup-join/1");
-    }
-  });
-
-  it("不正なURLの場合はバリデーションエラーになる", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "not-a-url",
-    });
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const issue = result.error.issues.find((i) => i.path[0] === "first_interview_url");
-      expect(issue?.message).toBe("正しいURL形式で入力してください");
-    }
-  });
-
-  it("日時なしでURLのみ入力してもバリデーションを通過する", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_url: "https://zoom.us/j/123",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_at).toBeUndefined();
-      expect(result.data.first_interview_url).toBe("https://zoom.us/j/123");
-    }
-  });
-
-  it("URLなしで日時のみ入力してもバリデーションを通過する", () => {
-    const result = jobFormSchema.safeParse({
-      ...baseValues,
-      first_interview_at: "2026-08-07T18:30",
-    });
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.first_interview_at).toBe(new Date(2026, 7, 7, 18, 30).toISOString());
-      expect(result.data.first_interview_url).toBeUndefined();
-    }
   });
 });

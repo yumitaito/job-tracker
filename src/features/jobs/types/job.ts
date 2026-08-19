@@ -1,3 +1,5 @@
+import type { InterviewSchedule } from "@/features/jobs/types/interview-schedule";
+
 export type JobStatus =
   | "not_applied"
   | "document_screening"
@@ -63,6 +65,7 @@ export type Job = {
   first_interview_url: string | null;
   second_interview_url: string | null;
   final_interview_url: string | null;
+  interview_schedules: InterviewSchedule[] | null;
   location: string | null;
   technologies: string[] | null;
   notes: string | null;
@@ -90,6 +93,7 @@ export type CreateJobInput = {
   first_interview_url: string | null;
   second_interview_url: string | null;
   final_interview_url: string | null;
+  interview_schedules: InterviewSchedule[] | null;
   location: string | null;
   technologies: string[] | null;
   notes: string | null;

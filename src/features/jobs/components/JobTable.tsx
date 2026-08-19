@@ -18,8 +18,7 @@ import {
   type JobListFieldUpdater,
 } from "@/features/jobs/components/JobListInlineFields";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { getJobListSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -48,13 +47,12 @@ export function JobTable({
       </TableHeader>
       <TableBody>
         {jobs.map((job) => {
-          const isPastInterview = isJobInterviewPast(job);
           const isUpdating = updatingJobId === job.id;
 
           return (
             <TableRow
               key={job.id}
-              className={cn("group", getPastInterviewSurfaceClassName(isPastInterview))}
+              className={cn("group", getJobListSurfaceClassName(job.status))}
             >
               <TableCell className="align-top py-4">
                 <Link to={`/jobs/${job.id}`} className="flex items-center gap-3">
