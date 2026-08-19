@@ -12,11 +12,20 @@ const displayName = z
   .min(1, "表示名を入力してください")
   .max(50, "50文字以内で入力してください");
 
+/** 新規登録・パスワード変更で共通のパスワード要件 */
+const password = z
+  .string()
+  .min(1, "パスワードを入力してください")
+  .refine(
+    (value) => value.length >= 6 && /[A-Za-z]/.test(value) && /\d/.test(value),
+    "パスワードは6文字以上で、英字と数字を含めてください",
+  );
+
 export const signupSchema = z
   .object({
     displayName,
     email,
-    password: z.string().min(6, "パスワードは6文字以上で入力してください"),
+    password,
     confirmPassword: z.string().min(1, "確認用パスワードを入力してください"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -36,7 +45,7 @@ export const profileSchema = z.object({
 
 export const passwordChangeSchema = z
   .object({
-    newPassword: z.string().min(6, "パスワードは6文字以上で入力してください"),
+    newPassword: password,
     confirmPassword: z.string().min(1, "確認用パスワードを入力してください"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
