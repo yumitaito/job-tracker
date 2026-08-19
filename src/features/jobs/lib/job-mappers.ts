@@ -1,4 +1,5 @@
-import { toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
+import { getTodayDateInputValue, toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
+import { getJobInterviewSchedules } from "@/features/jobs/lib/interview-schedules";
 import type { JobFormValues } from "@/features/jobs/schemas/job-schema";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -11,18 +12,35 @@ export function jobToFormValues(job: Job): JobFormValues {
     application_date: job.application_date ?? "",
     status: job.status,
     desire_level: job.desire_level,
-    casual_interview_at: toDateTimeLocalInputValue(job.casual_interview_at),
-    first_interview_at: toDateTimeLocalInputValue(job.first_interview_at),
-    second_interview_at: toDateTimeLocalInputValue(job.second_interview_at),
-    final_interview_at: toDateTimeLocalInputValue(job.final_interview_at),
-    casual_interview_url: job.casual_interview_url ?? "",
-    first_interview_url: job.first_interview_url ?? "",
-    second_interview_url: job.second_interview_url ?? "",
-    final_interview_url: job.final_interview_url ?? "",
+    interview_schedules: getJobInterviewSchedules(job).map((schedule) => ({
+      id: schedule.id,
+      kind: schedule.kind,
+      custom_label: schedule.custom_label ?? "",
+      scheduled_at: toDateTimeLocalInputValue(schedule.scheduled_at),
+      url: schedule.url ?? "",
+    })),
     location: job.location ?? "",
     technologies: job.technologies ?? [],
     notes: job.notes ?? "",
     min_salary: job.min_salary ?? "",
     max_salary: job.max_salary ?? "",
+  };
+}
+
+export function getDefaultJobFormValues(): JobFormValues {
+  return {
+    company_name: "",
+    position: "",
+    employment_type: "",
+    application_url: "",
+    application_date: getTodayDateInputValue(),
+    status: "",
+    desire_level: "medium",
+    interview_schedules: [],
+    location: "",
+    technologies: [],
+    notes: "",
+    min_salary: "",
+    max_salary: "",
   };
 }

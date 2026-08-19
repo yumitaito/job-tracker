@@ -48,6 +48,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
+    interview_schedules: null,
     location: null,
     technologies: null,
     notes: null,
@@ -108,7 +109,7 @@ describe("InterviewReminder", () => {
 
     expect(screen.getByText("面接5分前です")).toBeInTheDocument();
     expect(screen.getByText(/株式会社サンプル/)).toBeInTheDocument();
-    expect(screen.getByText(/一次面接日時/)).toBeInTheDocument();
+    expect(screen.getByText(/一次面接/)).toBeInTheDocument();
   });
 
   it("面接入室URLがある場合は入室するリンクを表示する", () => {
@@ -125,7 +126,7 @@ describe("InterviewReminder", () => {
 
     render(<InterviewReminder />);
 
-    const link = screen.getByRole("link", { name: "株式会社サンプルの一次面接日時に入室" });
+    const link = screen.getByRole("link", { name: "株式会社サンプルの一次面接に入室" });
     expect(link).toHaveTextContent("入室する");
     expect(link).toHaveAttribute("href", "https://zoom.us/j/123");
     expect(link).toHaveAttribute("target", "_blank");
@@ -179,7 +180,7 @@ describe("InterviewReminder", () => {
 
     render(<InterviewReminder />);
 
-    const link = screen.getByRole("link", { name: "B社の二次面接日時に入室" });
+    const link = screen.getByRole("link", { name: "B社の二次面接に入室" });
     expect(link).toHaveTextContent("入室する");
     expect(link).toHaveAttribute("href", "https://zoom.us/j/2");
   });

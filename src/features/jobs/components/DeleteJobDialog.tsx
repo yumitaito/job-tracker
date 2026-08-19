@@ -29,6 +29,7 @@ export function DeleteJobDialog({
           <DialogDescription>
             {companyName ? `「${companyName}」の求人情報` : "この求人情報"}
             を削除すると、元に戻すことはできません。
+            選考を辞退した場合は、ステータスを「辞退」に変更してください。
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "@/features/jobs/types/job";
+import { INTERVIEW_SCHEDULE_KIND_LABELS } from "@/features/jobs/types/interview-schedule";
 import { getListEditableInterview } from "./list-editable-interview";
 
 function createTestJob(overrides: Partial<Job> = {}): Job {
@@ -21,6 +22,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
+    interview_schedules: null,
     location: null,
     technologies: null,
     notes: null,
@@ -40,33 +42,39 @@ describe("getListEditableInterview", () => {
       second_interview_at: "2026-01-20T14:00:00.000Z",
     });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "second_interview",
       field: "second_interview_at",
       at: "2026-01-20T14:00:00.000Z",
       url: null,
+      label: INTERVIEW_SCHEDULE_KIND_LABELS.second_interview,
     });
+    expect(getListEditableInterview(job).scheduleId).toEqual(expect.any(String));
   });
 
   it("面接日時未入力で選考ステータスが面接中の場合、その段階を編集対象にする", () => {
     const job = createTestJob({ status: "first_interview" });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "first_interview",
       field: "first_interview_at",
       at: null,
       url: null,
+      label: INTERVIEW_SCHEDULE_KIND_LABELS.first_interview,
+      scheduleId: "",
     });
   });
 
   it("面接日時未入力で選考ステータスが面接以外の場合、一次面接日時を編集対象にする", () => {
     const job = createTestJob({ status: "document_screening" });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "first_interview",
       field: "first_interview_at",
       at: null,
       url: null,
+      label: INTERVIEW_SCHEDULE_KIND_LABELS.first_interview,
+      scheduleId: "",
     });
   });
 
@@ -77,7 +85,7 @@ describe("getListEditableInterview", () => {
       second_interview_url: "https://zoom.us/j/second",
     });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "second_interview",
       field: "second_interview_at",
       at: "2026-01-20T14:00:00.000Z",
@@ -92,7 +100,7 @@ describe("getListEditableInterview", () => {
       first_interview_url: "https://zoom.us/j/first",
     });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "second_interview",
       field: "second_interview_at",
       at: "2026-01-20T14:00:00.000Z",
@@ -106,7 +114,7 @@ describe("getListEditableInterview", () => {
       first_interview_url: "https://zoom.us/j/first",
     });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "first_interview",
       field: "first_interview_at",
       at: null,
@@ -122,7 +130,7 @@ describe("getListEditableInterview", () => {
       final_interview_url: "https://zoom.us/j/final",
     });
 
-    expect(getListEditableInterview(job)).toEqual({
+    expect(getListEditableInterview(job)).toMatchObject({
       stage: "final_interview",
       field: "final_interview_at",
       at: "2026-02-01T16:30:00.000Z",

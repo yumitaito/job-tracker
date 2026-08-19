@@ -5,7 +5,8 @@ import JobDetailPage from "./JobDetailPage";
 import { useAuth } from "@/features/auth/context/AuthProvider";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
 import { useJob } from "@/features/jobs/hooks/use-job";
-import { JOB_STATUS_LABELS, type Job } from "@/features/jobs/types/job";
+import { INTERVIEW_SCHEDULE_KIND_LABELS } from "@/features/jobs/types/interview-schedule";
+import type { Job } from "@/features/jobs/types/job";
 import { formatDateTime } from "@/lib/format";
 
 vi.mock("@/features/auth/context/AuthProvider", () => ({
@@ -43,6 +44,7 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
     first_interview_url: null,
     second_interview_url: null,
     final_interview_url: null,
+    interview_schedules: null,
     location: null,
     technologies: null,
     notes: null,
@@ -87,44 +89,56 @@ function getInterviewItem(label: string) {
   return within(container);
 }
 
-describe("JobDetailPage - 面接日時とURL", () => {
-  it("見出しはJOB_STATUS_LABELS（一次面接等）を使う", () => {
+describe("JobDetailPage - 選考スケジュール", () => {
+  it("選考スケジュールがない場合は面接項目を表示しない", () => {
     renderJobDetail(createTestJob());
 
-    expect(screen.getByText(JOB_STATUS_LABELS.casual_interview)).toBeInTheDocument();
-    expect(screen.getByText(JOB_STATUS_LABELS.first_interview)).toBeInTheDocument();
-    expect(screen.getByText(JOB_STATUS_LABELS.second_interview)).toBeInTheDocument();
-    expect(screen.getByText(JOB_STATUS_LABELS.final_interview)).toBeInTheDocument();
-    expect(screen.queryByText("一次面接日時")).not.toBeInTheDocument();
+    expect(screen.queryByText(INTERVIEW_SCHEDULE_KIND_LABELS.first_interview)).not.toBeInTheDocument();
   });
 
-  it("日時もURLもない場合は未設定と表示する", () => {
-    renderJobDetail(createTestJob());
+  it("登録済みの選考だけ表示する", () => {
+    renderJobDetail(
+      createTestJob({
+        interview_schedules: [
+          {
+            id: "schedule-1",
+            kind: "first_interview",
+            scheduled_at: "2026-08-07T09:00:00.000Z",
+            url: null,
+          },
+          {
+            id: "schedule-2",
+            kind: "final_interview",
+            scheduled_at: null,
+            url: "https://zoom.us/j/123",
+          },
+        ],
+      }),
+    );
 
-    expect(getInterviewItem(JOB_STATUS_LABELS.first_interview).getByText("未設定")).toBeInTheDocument();
-    expect(getInterviewItem(JOB_STATUS_LABELS.first_interview).queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByText(INTERVIEW_SCHEDULE_KIND_LABELS.first_interview)).toBeInTheDocument();
+    expect(screen.getByText(INTERVIEW_SCHEDULE_KIND_LABELS.final_interview)).toBeInTheDocument();
+    expect(screen.queryByText(INTERVIEW_SCHEDULE_KIND_LABELS.second_interview)).not.toBeInTheDocument();
   });
 
   it("日時のみの場合は日時を表示しリンクは出さない", () => {
     const at = "2026-08-07T09:00:00.000Z";
     renderJobDetail(createTestJob({ first_interview_at: at }));
 
-    const item = getInterviewItem(JOB_STATUS_LABELS.first_interview);
+    const item = getInterviewItem(INTERVIEW_SCHEDULE_KIND_LABELS.first_interview);
     expect(item.getByText(formatDateTime(at))).toBeInTheDocument();
     expect(item.queryByRole("link")).not.toBeInTheDocument();
-    expect(item.queryByText("未設定")).not.toBeInTheDocument();
   });
 
   it("URLのみの場合はリンクのみ表示する", () => {
     const url = "https://zoom.us/j/123";
     renderJobDetail(createTestJob({ first_interview_url: url }));
 
-    const item = getInterviewItem(JOB_STATUS_LABELS.first_interview);
+    const item = getInterviewItem(INTERVIEW_SCHEDULE_KIND_LABELS.first_interview);
     const link = item.getByRole("link", { name: url });
     expect(link).toHaveAttribute("href", url);
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    expect(item.queryByText("未設定")).not.toBeInTheDocument();
   });
 
   it("日時とURLの両方がある場合は日時とリンクを表示する", () => {
@@ -132,9 +146,8 @@ describe("JobDetailPage - 面接日時とURL", () => {
     const url = "https://zoom.us/j/123";
     renderJobDetail(createTestJob({ first_interview_at: at, first_interview_url: url }));
 
-    const item = getInterviewItem(JOB_STATUS_LABELS.first_interview);
+    const item = getInterviewItem(INTERVIEW_SCHEDULE_KIND_LABELS.first_interview);
     expect(item.getByText(formatDateTime(at))).toBeInTheDocument();
     expect(item.getByRole("link", { name: url })).toHaveAttribute("href", url);
-    expect(item.queryByText("未設定")).not.toBeInTheDocument();
   });
 });

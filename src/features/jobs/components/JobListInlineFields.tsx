@@ -1,4 +1,6 @@
 import { useState, type SyntheticEvent } from "react";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -11,9 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fromDateTimeLocalInputValue, toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
-import { INTERVIEW_STAGE_LABELS } from "@/features/jobs/lib/interview";
-import { getInterviewDateTimeClassName } from "@/features/jobs/lib/job-list-styles";
-import { getListEditableInterview } from "@/features/jobs/lib/list-editable-interview";
+import { getInterviewDateTimeClassName, getJobStatusSelectClassName } from "@/features/jobs/lib/job-list-styles";
+import { buildInterviewDateUpdateInput, getListEditableInterview } from "@/features/jobs/lib/list-editable-interview";
 import { STATUS_GROUPS } from "@/features/jobs/lib/job-status-groups";
 import {
   DESIRE_LEVELS,
@@ -58,7 +59,12 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
     if (nextIso === undefined) return;
     if ((nextIso ?? null) === (currentIso ?? null)) return;
 
-    onUpdate(job.id, { [editable.field]: nextIso });
+    if (!editable.scheduleId) {
+      onUpdate(job.id, { [editable.field!]: nextIso });
+      return;
+    }
+
+    onUpdate(job.id, buildInterviewDateUpdateInput(job, editable.scheduleId, nextIso));
   };
 
   return (
@@ -68,16 +74,14 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
       onPointerDown={stopSortablePointerDown}
     >
       {compact && (
-        <p className="text-xs font-bold text-foreground">
-          {INTERVIEW_STAGE_LABELS[editable.stage]}
-        </p>
+        <p className="text-xs font-bold text-foreground">{editable.label}</p>
       )}
       <Input
         type="datetime-local"
         value={value}
         disabled={isUpdating}
-        title={INTERVIEW_STAGE_LABELS[editable.stage]}
-        aria-label={`${job.company_name}の${INTERVIEW_STAGE_LABELS[editable.stage]}`}
+        title={editable.label}
+        aria-label={`${job.company_name}の${editable.label}`}
         className={cn(
           "h-9 w-full bg-white text-sm",
           compact && "h-8 text-xs",
@@ -101,18 +105,22 @@ export function JobListInterviewUrlField({ job, compact }: { job: Job; compact?:
       onPointerDown={stopSortablePointerDown}
     >
       {compact && <p className="text-xs font-semibold text-foreground">面接URL</p>}
-      <a
-        href={editable.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn(
-          "inline-flex min-h-8 items-center font-semibold text-foreground underline-offset-2 hover:underline",
-          compact ? "text-xs" : "text-sm",
-        )}
-        aria-label={`${job.company_name}の${INTERVIEW_STAGE_LABELS[editable.stage]}に入室`}
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className={cn("shrink-0", compact ? "h-8 px-3 text-xs" : "h-9 px-4")}
       >
-        入室
-      </a>
+        <a
+          href={editable.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${job.company_name}の${editable.label}に入室`}
+        >
+          <ExternalLink className={compact ? "size-3" : "size-3.5"} aria-hidden="true" />
+          入室
+        </a>
+      </Button>
     </div>
   );
 }
@@ -167,7 +175,11 @@ export function JobListStatusField({ job, onUpdate, isUpdating, compact }: Inlin
       >
         <SelectTrigger
           aria-label={`${job.company_name}の選考ステータス`}
-          className={cn("w-full min-w-[7.5rem] bg-white", compact ? "h-8 text-xs" : "h-9")}
+          className={cn(
+            "w-full min-w-[7.5rem]",
+            getJobStatusSelectClassName(job.status),
+            compact ? "h-8 text-xs" : "h-9",
+          )}
         >
           <SelectValue />
         </SelectTrigger>

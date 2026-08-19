@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   DEFAULT_JOB_LIST_FILTERS,
   JOB_LIST_FILTERS_STORAGE_KEY,
+  JOB_LIST_STATUS_FILTER_GROUPS,
+  JOB_LIST_TOP_LEVEL_STATUSES,
   jobListFiltersToSearchParams,
   parseJobListFiltersFromSearchParams,
   readJobListFiltersFromStorage,
@@ -76,5 +78,13 @@ describe("job-list-filters", () => {
       sort: "display_order_asc",
       status: "offer",
     });
+  });
+
+  it("トップレベルとグループで全ステータスをカバーする", () => {
+    const groupedStatuses = JOB_LIST_STATUS_FILTER_GROUPS.flatMap((group) => group.statuses);
+    expect(JOB_LIST_TOP_LEVEL_STATUSES).toEqual(["not_applied"]);
+    expect(JOB_LIST_STATUS_FILTER_GROUPS.map((group) => group.label)).toEqual(["進行中", "終了"]);
+    expect(groupedStatuses).toContain("withdrawn");
+    expect([...JOB_LIST_TOP_LEVEL_STATUSES, ...groupedStatuses]).toHaveLength(9);
   });
 });

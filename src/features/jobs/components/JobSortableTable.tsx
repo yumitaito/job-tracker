@@ -37,8 +37,7 @@ import {
 } from "@/features/jobs/components/JobListInlineFields";
 import { JobTable } from "@/features/jobs/components/JobTable";
 import { TechnologyBadges } from "@/features/jobs/components/TechnologyBadges";
-import { isJobInterviewPast } from "@/features/jobs/lib/interview";
-import { getPastInterviewSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
+import { getJobListSurfaceClassName } from "@/features/jobs/lib/job-list-styles";
 import { reorderJobIds } from "@/features/jobs/lib/job-order";
 import type { Job } from "@/features/jobs/types/job";
 
@@ -55,7 +54,6 @@ function SortableJobTableRow({
   updatingJobId: string | null;
   reorderEnabled: boolean;
 }) {
-  const isPastInterview = isJobInterviewPast(job);
   const isUpdating = updatingJobId === job.id;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: job.id,
@@ -73,7 +71,7 @@ function SortableJobTableRow({
       style={style}
       className={cn(
         "group",
-        getPastInterviewSurfaceClassName(isPastInterview),
+        getJobListSurfaceClassName(job.status),
         reorderEnabled && "cursor-grab touch-none active:cursor-grabbing",
         isDragging && "relative z-10 bg-muted/40 shadow-md",
       )}

@@ -23,7 +23,7 @@ const badgeVariants = cva(
         statusFinalInterview:
           "border-transparent bg-[var(--status-final-interview-bg)] text-[var(--status-final-interview-fg)]",
         statusOffer:
-          "border-transparent bg-[var(--status-offer-bg)] text-[var(--status-offer-fg)]",
+          "border-[var(--status-offer-border)] bg-[var(--status-offer-bg)] text-[var(--status-offer-fg)]",
         statusRejected:
           "border-transparent bg-[var(--status-rejected-bg)] text-[var(--status-rejected-fg)]",
         statusWithdrawn:
