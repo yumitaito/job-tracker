@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { JapaneseYen, Loader2, Wand2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -464,17 +464,6 @@ function Field({
   );
 }
 
-function SalaryInput({
-  className,
-  ...props
-}: React.ComponentProps<"input">) {
-  return (
-    <div className="relative">
-      <JapaneseYen className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-      <Input type="number" min={0} className={`pl-9 pr-12 ${className ?? ""}`} {...props} />
-      <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-sm text-muted-foreground">
-        万円
-      </span>
-    </div>
-  );
+function SalaryInput(props: React.ComponentProps<"input">) {
+  return <Input type="number" min={0} {...props} />;
 }
