@@ -36,12 +36,18 @@ function createTestJob(overrides: Partial<Job> = {}): Job {
 }
 
 describe("JobListInterviewField", () => {
-  it("内定の場合は面接日時を表示しない", () => {
+  it.each([
+    "not_applied",
+    "document_screening",
+    "offer",
+    "rejected",
+    "withdrawn",
+  ] as const)("%s の場合は面接日時を表示しない", (status) => {
     const { container } = render(
       <JobListInterviewField
         job={createTestJob({
-          status: "offer",
-          final_interview_at: "2026-02-01T16:30:00.000Z",
+          status,
+          first_interview_at: "2026-02-01T16:30:00.000Z",
         })}
         onUpdate={vi.fn()}
       />,
@@ -50,7 +56,7 @@ describe("JobListInterviewField", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("内定以外は面接日時入力を表示する", () => {
+  it("面接中の選考ステータスでは面接日時入力を表示する", () => {
     render(
       <JobListInterviewField
         job={createTestJob({
