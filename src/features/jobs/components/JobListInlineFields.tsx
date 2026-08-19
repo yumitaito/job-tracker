@@ -35,7 +35,8 @@ type InlineFieldProps = {
   compact?: boolean;
 };
 
-function stopRowNavigation(event: SyntheticEvent) {
+/** 一覧の並び替えドラッグ中に、インライン操作がドラッグ開始しないよう止める */
+export function stopSortablePointerDown(event: SyntheticEvent) {
   event.stopPropagation();
 }
 
@@ -63,8 +64,8 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
   return (
     <div
       className={cn(compact ? "space-y-1" : "flex min-h-9 items-center")}
-      onClick={stopRowNavigation}
-      onPointerDown={stopRowNavigation}
+      onClick={stopSortablePointerDown}
+      onPointerDown={stopSortablePointerDown}
     >
       {compact && (
         <p className="text-xs font-bold text-foreground">
@@ -96,8 +97,8 @@ export function JobListInterviewUrlField({ job, compact }: { job: Job; compact?:
   return (
     <div
       className={cn(compact ? "space-y-1" : "flex min-h-9 items-center")}
-      onClick={stopRowNavigation}
-      onPointerDown={stopRowNavigation}
+      onClick={stopSortablePointerDown}
+      onPointerDown={stopSortablePointerDown}
     >
       {compact && <p className="text-xs font-semibold text-foreground">面接URL</p>}
       <a
@@ -120,8 +121,8 @@ export function JobListDesireLevelField({ job, onUpdate, isUpdating, compact }: 
   return (
     <div
       className={cn(!compact && "flex min-h-9 items-center")}
-      onClick={stopRowNavigation}
-      onPointerDown={stopRowNavigation}
+      onClick={stopSortablePointerDown}
+      onPointerDown={stopSortablePointerDown}
     >
       <Select
         value={job.desire_level}
@@ -153,8 +154,8 @@ export function JobListStatusField({ job, onUpdate, isUpdating, compact }: Inlin
   return (
     <div
       className={cn(!compact && "flex min-h-9 items-center")}
-      onClick={stopRowNavigation}
-      onPointerDown={stopRowNavigation}
+      onClick={stopSortablePointerDown}
+      onPointerDown={stopSortablePointerDown}
     >
       <Select
         value={job.status}

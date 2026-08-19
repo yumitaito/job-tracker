@@ -106,8 +106,7 @@ export type JobSortOption =
   | "application_date_desc"
   | "application_date_asc"
   | "updated_at_desc"
-  | "updated_at_asc"
-  | "company_name_asc";
+  | "updated_at_asc";
 
 export const JOB_SORT_LABELS: Record<JobSortOption, string> = {
   display_order_asc: "カスタム順",
@@ -116,7 +115,6 @@ export const JOB_SORT_LABELS: Record<JobSortOption, string> = {
   application_date_asc: "応募日が古い順",
   updated_at_desc: "更新日が新しい順",
   updated_at_asc: "更新日が古い順",
-  company_name_asc: "企業名（昇順）",
 };
 
 export type JobStatusFilter = "all" | JobStatus;

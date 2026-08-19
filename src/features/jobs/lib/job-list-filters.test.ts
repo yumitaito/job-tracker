@@ -19,7 +19,7 @@ describe("job-list-filters", () => {
     const fromUrl = parseJobListFiltersFromSearchParams(params);
 
     writeJobListFiltersToStorage({
-      sort: "company_name_asc",
+      sort: "updated_at_asc",
       status: "all",
     });
 
