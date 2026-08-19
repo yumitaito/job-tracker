@@ -24,7 +24,7 @@ export default function JobListPage() {
 
   const { data: jobs, isPending, isError, error, refetch } = useJobs(sort);
   const deleteJob = useDeleteJob();
-  const reorderJobs = useReorderJobs(sort);
+  const reorderJobs = useReorderJobs(sort, jobs ?? []);
   const updateJobFromList = useUpdateJobFromList();
 
   const canReorder = status === "all" && sort === "display_order_asc";
@@ -85,7 +85,7 @@ export default function JobListPage() {
           </p>
         )}
 
-        <Card className="overflow-hidden">
+        <Card>
           {isPending && <JobListSkeleton />}
 
           {isError && (

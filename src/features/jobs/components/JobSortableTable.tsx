@@ -185,7 +185,7 @@ export function JobSortableTable({
           <TableHeader>
             <TableRow>
               <TableHead>企業名 / 職種</TableHead>
-              <TableHead className="w-52">面接日時</TableHead>
+              <TableHead className="min-w-44 w-56">面接日時</TableHead>
               <TableHead className="w-24 whitespace-nowrap">志望度</TableHead>
               <TableHead className="min-w-40 whitespace-nowrap">選考ステータス</TableHead>
               <TableHead className="w-24 whitespace-nowrap">面接URL</TableHead>

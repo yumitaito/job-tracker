@@ -1,7 +1,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InterviewDateTimePicker } from "@/features/jobs/components/InterviewDateTimePicker";
 import {
   Select,
   SelectContent,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { fromDateTimeLocalInputValue, toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
 import { getInterviewDateTimeClassName, getJobStatusSelectClassName } from "@/features/jobs/lib/job-list-styles";
-import { buildInterviewDateUpdateInput, getListEditableInterview } from "@/features/jobs/lib/list-editable-interview";
+import { buildListInterviewDateUpdateInput, getListEditableInterview, shouldHideListInterviewDateTime } from "@/features/jobs/lib/list-editable-interview";
 import { STATUS_GROUPS } from "@/features/jobs/lib/job-status-groups";
 import {
   DESIRE_LEVELS,
@@ -43,7 +43,8 @@ export function stopSortablePointerDown(event: SyntheticEvent) {
 
 export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: InlineFieldProps) {
   const editable = getListEditableInterview(job);
-  const syncKey = `${job.id}:${editable.field}:${editable.at ?? ""}`;
+  const hideInterviewDateTime = shouldHideListInterviewDateTime(job);
+  const syncKey = `${job.id}:${editable.field}:${editable.at ?? ""}:${job.status}`;
   const [value, setValue] = useState(() => toDateTimeLocalInputValue(editable.at));
   const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
 
@@ -52,20 +53,25 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
     setValue(toDateTimeLocalInputValue(editable.at));
   }
 
-  const handleBlur = () => {
-    const nextIso = value.trim() ? fromDateTimeLocalInputValue(value.trim()) : null;
+  const handleChange = (nextValue: string) => {
+    setValue(nextValue);
+
+    if (hideInterviewDateTime || !editable.field) return;
+
+    const nextIso = nextValue.trim() ? fromDateTimeLocalInputValue(nextValue.trim()) : null;
     const currentIso = editable.at;
 
     if (nextIso === undefined) return;
     if ((nextIso ?? null) === (currentIso ?? null)) return;
 
-    if (!editable.scheduleId) {
-      onUpdate(job.id, { [editable.field!]: nextIso });
-      return;
-    }
-
-    onUpdate(job.id, buildInterviewDateUpdateInput(job, editable.scheduleId, nextIso));
+    onUpdate(job.id, buildListInterviewDateUpdateInput(job, editable, nextIso));
   };
+
+  if (hideInterviewDateTime) {
+    return null;
+  }
+
+  const fieldLabel = `${job.company_name}の${editable.label}`;
 
   return (
     <div
@@ -76,19 +82,17 @@ export function JobListInterviewField({ job, onUpdate, isUpdating, compact }: In
       {compact && (
         <p className="text-xs font-bold text-foreground">{editable.label}</p>
       )}
-      <Input
-        type="datetime-local"
+      <InterviewDateTimePicker
+        id={`job-list-interview-${job.id}`}
         value={value}
-        disabled={isUpdating}
-        title={editable.label}
-        aria-label={`${job.company_name}の${editable.label}`}
-        className={cn(
-          "h-9 w-full bg-white text-sm",
-          compact && "h-8 text-xs",
-          editable.at ? getInterviewDateTimeClassName(editable.at) : undefined,
-        )}
-        onChange={(event) => setValue(event.target.value)}
-        onBlur={handleBlur}
+        onChange={handleChange}
+        disabled={isUpdating || !editable.field}
+        variant="inline"
+        compact={compact}
+        aria-label={fieldLabel}
+        triggerClassName={
+          editable.at ? getInterviewDateTimeClassName(editable.at) : undefined
+        }
       />
     </div>
   );
