@@ -121,4 +121,4 @@ export const JOB_SORT_LABELS: Record<JobSortOption, string> = {
   updated_at_asc: "更新日が古い順",
 };
 
-export type JobStatusFilter = "all" | JobStatus;
+export type JobStatusFilter = "all" | "in_progress" | "ended" | JobStatus;

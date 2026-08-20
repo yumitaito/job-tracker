@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { fromDateTimeLocalInputValue, toDateTimeLocalInputValue } from "@/features/jobs/lib/datetime";
 import { getInterviewDateTimeClassName, getJobStatusSelectClassName } from "@/features/jobs/lib/job-list-styles";
+import { getJobListDisplayStatus } from "@/features/jobs/lib/job-display-status";
 import { buildListInterviewDateUpdateInput, getListEditableInterview, shouldHideListInterviewDateTime } from "@/features/jobs/lib/list-editable-interview";
 import { STATUS_GROUPS } from "@/features/jobs/lib/job-status-groups";
 import {
@@ -163,6 +164,8 @@ export function JobListDesireLevelField({ job, onUpdate, isUpdating, compact }: 
 }
 
 export function JobListStatusField({ job, onUpdate, isUpdating, compact }: InlineFieldProps) {
+  const displayStatus = getJobListDisplayStatus(job);
+
   return (
     <div
       className={cn(!compact && "flex min-h-9 items-center")}
@@ -178,14 +181,14 @@ export function JobListStatusField({ job, onUpdate, isUpdating, compact }: Inlin
         }}
       >
         <SelectTrigger
-          aria-label={`${job.company_name}の選考ステータス`}
+          aria-label={`${job.company_name}の選考ステータス: ${displayStatus.label}`}
           className={cn(
             "w-full min-w-[7.5rem]",
-            getJobStatusSelectClassName(job.status),
+            getJobStatusSelectClassName(job),
             compact ? "h-8 text-xs" : "h-9",
           )}
         >
-          <SelectValue />
+          <span className="truncate">{displayStatus.label}</span>
         </SelectTrigger>
         <SelectContent>
           {STATUS_GROUPS.map((group, index) => (
