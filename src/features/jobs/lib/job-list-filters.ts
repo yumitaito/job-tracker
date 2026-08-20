@@ -11,24 +11,42 @@ export const JOB_LIST_FILTERS_STORAGE_KEY = "job-tracker-list-filters";
 /** 一覧フィルターのトップレベル（グループ外） */
 export const JOB_LIST_TOP_LEVEL_STATUSES: JobStatus[] = ["not_applied"];
 
-/** 一覧フィルターのグループ表示 */
+/** 「進行中」全体フィルターで絞り込むステータス（ドロップダウン選択肢と同一） */
+export const JOB_LIST_IN_PROGRESS_STATUSES: JobStatus[] = [
+  "document_screening",
+  "casual_interview",
+  "first_interview",
+  "second_interview",
+  "final_interview",
+];
+
+export const JOB_LIST_IN_PROGRESS_FILTER = "in_progress" as const;
+
+/** 「終了」全体フィルターで絞り込むステータス（ドロップダウン選択肢と同一） */
+export const JOB_LIST_ENDED_STATUSES: JobStatus[] = ["offer", "rejected", "withdrawn"];
+
+export const JOB_LIST_ENDED_FILTER = "ended" as const;
+
+export type JobListGroupStatusFilter =
+  | typeof JOB_LIST_IN_PROGRESS_FILTER
+  | typeof JOB_LIST_ENDED_FILTER;
+
+/** 一覧フィルターのグループ表示（ドロップダウン） */
 export const JOB_LIST_STATUS_FILTER_GROUPS: {
   label: string;
   statuses: JobStatus[];
+  /** ピル本体クリック時に適用する複合フィルター */
+  groupFilter: JobListGroupStatusFilter;
 }[] = [
   {
     label: "進行中",
-    statuses: [
-      "document_screening",
-      "casual_interview",
-      "first_interview",
-      "second_interview",
-      "final_interview",
-    ],
+    statuses: JOB_LIST_IN_PROGRESS_STATUSES,
+    groupFilter: JOB_LIST_IN_PROGRESS_FILTER,
   },
   {
     label: "終了",
-    statuses: ["offer", "rejected", "withdrawn"],
+    statuses: JOB_LIST_ENDED_STATUSES,
+    groupFilter: JOB_LIST_ENDED_FILTER,
   },
 ];
 
@@ -43,7 +61,23 @@ export const DEFAULT_JOB_LIST_FILTERS: JobListFilters = {
 };
 
 const SORT_OPTIONS = new Set(Object.keys(JOB_SORT_LABELS) as JobSortOption[]);
-const STATUS_FILTERS = new Set<JobStatusFilter>(["all", ...JOB_STATUSES]);
+const STATUS_FILTERS = new Set<JobStatusFilter>([
+  "all",
+  JOB_LIST_IN_PROGRESS_FILTER,
+  JOB_LIST_ENDED_FILTER,
+  ...JOB_STATUSES,
+]);
+
+export function matchesJobStatusFilter(jobStatus: JobStatus, filter: JobStatusFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === JOB_LIST_IN_PROGRESS_FILTER) {
+    return JOB_LIST_IN_PROGRESS_STATUSES.includes(jobStatus);
+  }
+  if (filter === JOB_LIST_ENDED_FILTER) {
+    return JOB_LIST_ENDED_STATUSES.includes(jobStatus);
+  }
+  return jobStatus === filter;
+}
 
 export function isJobSortOption(value: string): value is JobSortOption {
   return SORT_OPTIONS.has(value as JobSortOption);

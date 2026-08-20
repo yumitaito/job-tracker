@@ -11,6 +11,9 @@ if (!HTMLElement.prototype.setPointerCapture) {
 if (!HTMLElement.prototype.releasePointerCapture) {
   HTMLElement.prototype.releasePointerCapture = () => undefined;
 }
+if (!HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => undefined;
+}
 
 // @testing-library/reactは`typeof afterEach === "function"`を見て自動cleanupを登録するが、
 // このプロジェクトはvitestの`globals: true`を使っていないためグローバルにafterEachが存在せず、

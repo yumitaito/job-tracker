@@ -15,8 +15,15 @@ import { useJobs } from "@/features/jobs/hooks/use-jobs";
 import { useDeleteJob } from "@/features/jobs/hooks/use-delete-job";
 import { useReorderJobs } from "@/features/jobs/hooks/use-reorder-jobs";
 import { useUpdateJobFromList } from "@/features/jobs/hooks/use-update-job-from-list";
-import { JOB_STATUSES } from "@/features/jobs/types/job";
+import {
+  JOB_LIST_ENDED_FILTER,
+  JOB_LIST_ENDED_STATUSES,
+  JOB_LIST_IN_PROGRESS_FILTER,
+  JOB_LIST_IN_PROGRESS_STATUSES,
+  matchesJobStatusFilter,
+} from "@/features/jobs/lib/job-list-filters";
 import type { Job, JobStatusFilter, UpdateJobInput } from "@/features/jobs/types/job";
+import { JOB_STATUSES } from "@/features/jobs/types/job";
 
 export default function JobListPage() {
   const { status, setStatus, sort, setSort } = useJobListFilters();
@@ -38,20 +45,32 @@ export default function JobListPage() {
   };
 
   const counts = useMemo(() => {
-    const base = { all: 0 } as Record<JobStatusFilter, number>;
+    const base = {
+      all: 0,
+      [JOB_LIST_IN_PROGRESS_FILTER]: 0,
+      [JOB_LIST_ENDED_FILTER]: 0,
+    } as Record<JobStatusFilter, number>;
     for (const s of JOB_STATUSES) base[s] = 0;
     if (!jobs) return base;
     base.all = jobs.length;
     for (const job of jobs) {
       base[job.status] += 1;
     }
+    base[JOB_LIST_IN_PROGRESS_FILTER] = JOB_LIST_IN_PROGRESS_STATUSES.reduce(
+      (sum, status) => sum + base[status],
+      0,
+    );
+    base[JOB_LIST_ENDED_FILTER] = JOB_LIST_ENDED_STATUSES.reduce(
+      (sum, status) => sum + base[status],
+      0,
+    );
     return base;
   }, [jobs]);
 
   const filteredJobs = useMemo(() => {
     if (!jobs) return [];
     if (status === "all") return jobs;
-    return jobs.filter((job) => job.status === status);
+    return jobs.filter((job) => matchesJobStatusFilter(job.status, status));
   }, [jobs, status]);
 
   const handleConfirmDelete = () => {

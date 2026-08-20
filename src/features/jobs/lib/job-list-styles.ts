@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { isToday } from "@/lib/format";
 import { isInterviewPast } from "@/features/jobs/lib/interview";
-import type { JobStatus } from "@/features/jobs/types/job";
+import type { Job, JobStatus } from "@/features/jobs/types/job";
 
 const ENDED_JOB_STATUSES = new Set<JobStatus>(["rejected", "withdrawn"]);
 
@@ -27,9 +27,9 @@ export function getInterviewDateTimeClassName(at: string, now: Date = new Date()
   return "whitespace-nowrap";
 }
 
-/** 一覧の選考ステータス Select 向けスタイル */
-export function getJobStatusSelectClassName(status: JobStatus): string {
-  if (status === "offer") {
+/** 一覧の選考ステータス Select 向けスタイル（内定のみグリーン） */
+export function getJobStatusSelectClassName(job: Job): string {
+  if (job.status === "offer") {
     return "border-green-200 bg-green-100 font-semibold text-green-800";
   }
 

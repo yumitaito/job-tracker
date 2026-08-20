@@ -79,33 +79,58 @@ function StatusFilterGroupDropdown({
   onStatusChange: (status: JobStatusFilter) => void;
 }) {
   const activeStatus = group.statuses.find((value) => status === value);
-  const groupActive = Boolean(activeStatus);
+  const groupFilterActive = status === group.groupFilter;
+  const groupActive = groupFilterActive || Boolean(activeStatus);
   const groupCount = group.statuses.reduce((sum, value) => sum + (counts[value] ?? 0), 0);
-  const label = groupActive ? JOB_STATUS_LABELS[activeStatus!] : group.label;
-  const count = groupActive ? (counts[activeStatus!] ?? 0) : groupCount;
+  const label = activeStatus ? JOB_STATUS_LABELS[activeStatus] : group.label;
+  const count = activeStatus ? (counts[activeStatus] ?? 0) : groupCount;
 
   return (
-    <Select
-      value={groupActive ? status : undefined}
-      onValueChange={(value) => onStatusChange(value as JobStatusFilter)}
+    <div
+      className={cn(
+        "flex shrink-0 items-stretch overflow-hidden rounded-full border text-sm font-bold transition-colors",
+        groupActive
+          ? "border-transparent bg-secondary text-secondary-foreground shadow-sm"
+          : "border-border bg-white text-foreground",
+      )}
     >
-      <SelectPrimitive.Trigger asChild>
-        <FilterPillButton
-          active={groupActive}
-          label={label}
-          count={count}
-          showChevron
-          aria-label={`${group.label}のステータスで絞り込む`}
-        />
-      </SelectPrimitive.Trigger>
-      <SelectContent align="start">
-        {group.statuses.map((value) => (
-          <SelectItem key={value} value={value}>
-            {JOB_STATUS_LABELS[value]}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      <button
+        type="button"
+        className={cn(
+          "flex items-center gap-2 px-4 py-2 transition-colors",
+          !groupActive && "hover:bg-muted",
+        )}
+        onClick={() => onStatusChange(group.groupFilter)}
+        aria-label={`${group.label}で絞り込む`}
+      >
+        {label}
+        <FilterPillCount active={groupActive} count={count} />
+      </button>
+      <Select
+        value={activeStatus}
+        onValueChange={(value) => onStatusChange(value as JobStatusFilter)}
+      >
+        <SelectPrimitive.Trigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex items-center border-l px-2 py-2 transition-colors",
+              groupActive ? "border-white/25 hover:bg-white/10" : "border-border hover:bg-muted",
+            )}
+            aria-label={`${group.label}のステータスを選択`}
+          >
+            <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden="true" />
+          </button>
+        </SelectPrimitive.Trigger>
+        <SelectContent align="start">
+          {group.statuses.map((value) => (
+            <SelectItem key={value} value={value}>
+              {JOB_STATUS_LABELS[value]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
