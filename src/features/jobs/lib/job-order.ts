@@ -1,31 +1,40 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import type { Job } from "@/features/jobs/types/job";
+import type { Job, JobStatus } from "@/features/jobs/types/job";
 
-/** 内定（offer）の求人を常に先頭へ寄せる（各グループ内の相対順は維持） */
+const PINNED_TOP_STATUSES: JobStatus[] = ["offer", "document_screening"];
+
+function isPinnedTopStatus(status: JobStatus): boolean {
+  return PINNED_TOP_STATUSES.includes(status);
+}
+
+/** 内定 → 書類選考中 → その他の順で先頭へ寄せる（各グループ内の相対順は維持） */
 export function pinOfferJobsToTop(jobs: Job[]): Job[] {
-  const offers: Job[] = [];
+  const pinnedGroups = PINNED_TOP_STATUSES.map(() => [] as Job[]);
   const others: Job[] = [];
 
   for (const job of jobs) {
-    if (job.status === "offer") {
-      offers.push(job);
-    } else {
+    const pinnedIndex = PINNED_TOP_STATUSES.indexOf(job.status);
+    if (pinnedIndex === -1) {
       others.push(job);
+    } else {
+      pinnedGroups[pinnedIndex].push(job);
     }
   }
 
-  return [...offers, ...others];
+  return [...pinnedGroups.flat(), ...others];
 }
 
-/** 手動並び替え結果を保存する前に、内定求人を先頭へ正規化する */
+/** 手動並び替え結果を保存する前に、優先表示求人を先頭へ正規化する */
 export function normalizeOrderedJobIds(jobs: Job[], orderedIds: string[]): string[] {
   const jobMap = new Map(jobs.map((job) => [job.id, job]));
   const knownIds = orderedIds.filter((id) => jobMap.has(id));
-  const offers = knownIds.filter((id) => jobMap.get(id)?.status === "offer");
-  const others = knownIds.filter((id) => jobMap.get(id)?.status !== "offer");
+  const pinnedIds = PINNED_TOP_STATUSES.flatMap((status) =>
+    knownIds.filter((id) => jobMap.get(id)?.status === status),
+  );
+  const others = knownIds.filter((id) => !isPinnedTopStatus(jobMap.get(id)!.status));
   const trailing = jobs.map((job) => job.id).filter((id) => !knownIds.includes(id));
 
-  return [...offers, ...others, ...trailing];
+  return [...pinnedIds, ...others, ...trailing];
 }
 
 /** ドラッグ終了後の新しい並び順（job id の配列）を、Job 配列に反映する */
