@@ -56,6 +56,18 @@ describe("pinOfferJobsToTop", () => {
 
     expect(pinOfferJobsToTop(jobs).map((job) => job.id)).toEqual(["b", "d", "a", "c"]);
   });
+
+  it("書類選考中は内定の次に配置する", () => {
+    const jobs = [
+      createTestJob("a", 0, "offer"),
+      createTestJob("b", 1, "document_screening"),
+      createTestJob("c", 2),
+      createTestJob("d", 3, "document_screening"),
+      createTestJob("e", 4, "offer"),
+    ];
+
+    expect(pinOfferJobsToTop(jobs).map((job) => job.id)).toEqual(["a", "e", "b", "d", "c"]);
+  });
 });
 
 describe("normalizeOrderedJobIds", () => {
@@ -68,6 +80,16 @@ describe("normalizeOrderedJobIds", () => {
 
     expect(normalizeOrderedJobIds(jobs, ["c", "a", "b"])).toEqual(["b", "c", "a"]);
   });
+
+  it("書類選考中は内定の次に正規化する", () => {
+    const jobs = [
+      createTestJob("a", 0, "offer"),
+      createTestJob("b", 1, "document_screening"),
+      createTestJob("c", 2),
+    ];
+
+    expect(normalizeOrderedJobIds(jobs, ["a", "c", "b"])).toEqual(["a", "b", "c"]);
+  });
 });
 
 describe("applyJobOrder", () => {
@@ -77,14 +99,14 @@ describe("applyJobOrder", () => {
     expect(result.map((job) => job.id)).toEqual(["c", "a", "b"]);
   });
 
-  it("内定求人は並び替え後も先頭に来る", () => {
+  it("内定と書類選考中は並び替え後も内定→書類選考中の順で先頭に来る", () => {
     const jobs = [
-      createTestJob("a", 0),
-      createTestJob("b", 1, "offer"),
+      createTestJob("a", 0, "offer"),
+      createTestJob("b", 1, "document_screening"),
       createTestJob("c", 2),
     ];
     const result = applyJobOrder(jobs, ["c", "a", "b"]);
-    expect(result.map((job) => job.id)).toEqual(["b", "c", "a"]);
+    expect(result.map((job) => job.id)).toEqual(["a", "b", "c"]);
   });
 });
 
