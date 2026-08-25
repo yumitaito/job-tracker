@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { sortJobsByUpcomingInterview } from "@/features/jobs/lib/interview";
-import { pinOfferJobsToTop, toDisplayOrderUpdates } from "@/features/jobs/lib/job-order";
+import { pinOfferJobsToTop } from "@/features/jobs/lib/job-order";
 import type { CreateJobInput, Job, JobSortOption, UpdateJobInput } from "@/features/jobs/types/job";
 
 const TABLE = "jobs";
@@ -98,13 +98,6 @@ export async function deleteJob(id: string): Promise<void> {
 
 /** 一覧の手動並び替え結果を display_order に保存する（RLS により本人の求人のみ更新） */
 export async function reorderJobs(orderedIds: string[]): Promise<void> {
-  const updates = toDisplayOrderUpdates(orderedIds);
-  const results = await Promise.all(
-    updates.map(({ id, display_order }) =>
-      supabase.from(TABLE).update({ display_order }).eq("id", id),
-    ),
-  );
-
-  const failed = results.find((result) => result.error);
-  if (failed?.error) throw new Error(failed.error.message);
+  const { error } = await supabase.rpc("reorder_jobs", { ordered_ids: orderedIds });
+  if (error) throw new Error(error.message);
 }

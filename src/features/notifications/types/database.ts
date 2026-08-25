@@ -25,7 +25,8 @@ export type InterviewPushSentRow = {
   id: string;
   user_id: string;
   job_id: string;
-  interview_stage: "casual_interview" | "first_interview" | "second_interview" | "final_interview";
+  interview_stage: string;
+  schedule_id: string;
   interview_at: string;
   sent_at: string;
 };

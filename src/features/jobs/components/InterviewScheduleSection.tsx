@@ -42,7 +42,8 @@ export function InterviewScheduleSection({ control, errors }: InterviewScheduleS
     name: "interview_schedules",
     keyName: "fieldKey",
   });
-  const watchedSchedules = useWatch({ control, name: "interview_schedules" }) ?? [];
+  const watchedValue = useWatch({ control, name: "interview_schedules" });
+  const watchedSchedules = useMemo(() => watchedValue ?? [], [watchedValue]);
   const [isAdding, setIsAdding] = useState(false);
   const [selectedKind, setSelectedKind] = useState<InterviewScheduleKind | "">("");
 
