@@ -97,13 +97,39 @@ npm run dev          # 開発サーバー（http://localhost:5173）
 npm run lint         # ESLint
 npm run typecheck    # tsc -b
 npm run test         # Vitest（vitest run）
+npm run test:security # Secret・RLS・RPC・schema/migration契約の静的検査
+npm run test:db      # Supabase local上のRLS/RPC統合テスト（要Docker/Supabase CLI）
+npm run test:edge    # Edge Functionのfmt/check/test（要Deno）
 npm run test:watch   # Vitest watch モード
 npm run build        # 型チェック + 本番ビルド
 npm run preview      # ビルド成果物のプレビュー
 npm run test:e2e     # Playwright E2E（詳細は下記）
 ```
 
-PR に対して GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）で `lint` / `typecheck` / `test` / `build` と Playwright E2E が自動実行されます。
+PR に対して GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）でフロントエンド、DB/RLS/RPC、Edge Function、Public E2Eを独立して検査します。
+
+### 品質ゲートとbranch protection
+
+GitHubの Settings → Branches → Branch protection rules で`main`に「Require status checks to pass」を設定し、次の固定check名を必須にしてください。
+
+- `Frontend Quality`
+- `Backend Security Integration`
+- `Edge Function Security`
+- `Public E2E`
+
+併せて「Require branches to be up to date before merging」と「Require conversation resolution」を有効にします。設定完了前はこれらのcheckはmergeを強制的には止めません。`.github/CODEOWNERS`はセキュリティ境界のレビュー依頼先を明示しますが、単独開発では自分自身のCode Owner approvalを付けられないため、「Require review from Code Owners」は必須化しません。review/test-agentのチェック欄はレビュー証跡であり、エージェント実行自体をCIが検証するものではありません。
+
+DB統合テストはCI/ローカル専用bootstrapへgit履歴上の初期schemaを作成後、`0001`以降を再生します。bootstrapは通常のmigrationではないため、既存remoteのmigration履歴や本番適用には影響せず、migration repairも不要です。ローカル実行手順:
+
+```bash
+npm run setup:db:security
+npm run test:db
+supabase stop --no-backup
+```
+
+認証済みE2Eは`Backend Security Integration`内の同じSupabase stackへテストユーザーを自動作成して常時実行します。Secrets未設定による黙示的skipはセキュリティcheckとして扱いません。`Public E2E`は未認証ルートだけを明示的に担当します。
+
+静的security contract検査は早期検知の補助です。実際のRLS・権限・RPCトランザクション性はSupabase local上のDB統合テストを正とします。CI actionはcommit SHAで固定し、Dependabot等で更新候補を確認して、提供元のreleaseとSHAを照合して更新してください。Supabase CLIとDenoもworkflow内で明示したバージョンを意図的に更新します。
 
 ## 画面構成
 

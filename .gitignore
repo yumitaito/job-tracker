@@ -19,6 +19,7 @@ skills-lock.json
 
 # Supabase CLIのローカルキャッシュ
 supabase/.temp
+supabase/.branches
 
 # Playwright（E2Eテスト）
 e2e/.auth/

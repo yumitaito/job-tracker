@@ -44,6 +44,7 @@
 - `review-agent` が **Critical/High** の問題を報告した場合は、その内容を `implement-agent` に渡して修正させ、
   再度 `review-agent` でレビューする。問題がなくなるまで繰り返す（自己判断で止めない）。
 - `test-agent` でテストが失敗した場合も同様に `implement-agent` に差し戻し、修正後に再テストする。
+- review-agentによる最終再レビューで **Critical 0件 / High 0件** が明記され、かつtest-agentが成功するまでは、commit・push・Pull Request作成を禁止する。差し戻し回数と最終結果をPR本文へ記録する。
 
 ## Git運用
 
@@ -104,7 +105,7 @@ PR作成後は必ず停止する。最終的なPRレビュー・merge・Producti
 
 ## CI（GitHub Actions）
 
-`.github/workflows/ci.yml` で、PR作成・更新時に `lint` / `typecheck` / `test` / `build` を自動実行する。
+`.github/workflows/ci.yml` で、PR作成・更新時に `Frontend Quality` / `Backend Security Integration` / `Edge Function Security` / `Public E2E` を自動実行する。
 CIが失敗する状態でPRを作成しないこと（作成前にローカルで上記コマンドを必ず確認する）。
 
 ## Vercelデプロイ構成

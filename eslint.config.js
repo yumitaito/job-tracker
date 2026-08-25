@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   // supabase/functions は Deno ランタイムで動くEdge Functionのため、
   // フロントエンド用のTS/ESLint設定（Node/ブラウザ向け）の対象外とする。
-  { ignores: ['dist', 'supabase/functions'] },
+  { ignores: ['dist', 'supabase/functions', 'supabase/.temp', 'supabase/.branches'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

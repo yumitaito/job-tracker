@@ -2,16 +2,18 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import { AUTH_STORAGE_STATE } from "../../playwright.config";
 import { fieldByLabel } from "../helpers";
+import { assertAuthStorageState, isAuthE2ERequired } from "../auth-requirements";
 
 // ログイン済み状態のスモークテスト。
-// E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD が設定されていない環境（Secrets未設定のCIやローカル）
-// では global-setup.ts がstorageStateを生成しないため、ファイルの有無で丸ごとskipする。
-// これによりSecrets未設定でもCIは失敗しない。
+// ローカル任意モードだけは資格情報未設定時にskipできる。
+// CI品質ゲートはE2E_REQUIRE_AUTH=trueのため、storageState欠落時は読込時点で失敗する。
 const hasAuthState = fs.existsSync(AUTH_STORAGE_STATE);
+const authRequired = isAuthE2ERequired(process.env);
+assertAuthStorageState(authRequired, hasAuthState);
 
 test.describe("ログイン済み状態のスモークテスト", () => {
   test.skip(
-    !hasAuthState,
+    !authRequired && !hasAuthState,
     "E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD が未設定のためスキップします（e2e/global-setup.ts を参照）",
   );
 

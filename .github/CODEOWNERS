@@ -1,0 +1,8 @@
+# セキュリティ境界を変更するファイルは、必ず所有者へレビューを依頼する。
+/supabase/ @yumitaito
+/src/features/auth/ @yumitaito
+/src/features/notifications/ @yumitaito
+/src/features/jobs/api/ @yumitaito
+/.github/workflows/ @yumitaito
+/.github/CODEOWNERS @yumitaito
+/CLAUDE.md @yumitaito
