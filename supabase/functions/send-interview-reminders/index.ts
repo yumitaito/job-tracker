@@ -19,28 +19,13 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const STAGE_LABELS: Record<string, string> = {
-  casual_interview: "カジュアル面談",
-  first_interview: "一次面接",
-  second_interview: "二次面接",
-  third_interview: "三次面接",
-  final_interview: "最終面接",
-  other: "選考",
-};
-
-type InterviewSchedule = {
-  id: string;
-  kind: string;
-  custom_label?: string | null;
-  scheduled_at?: string | null;
-  url?: string | null;
-};
-
 type InterviewCandidate = {
   jobId: string;
   userId: string;
   companyName: string;
-  stage: "casual_interview" | "first_interview" | "second_interview" | "final_interview";
+  stage: string;
+  scheduleId: string;
+  stageLabel: string;
   at: string;
   interviewUrl: string | null;
 };
@@ -58,21 +43,6 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-// 面接開始まで残り0分超5分以下かどうかを判定する。
-// cronは1分間隔で実行されるため、送信失敗時に予約をロールバックしても
-// この窓の間であれば次回以降のtickで再度候補として拾われ再試行できる。
-// 重複送信は interview_push_sent への予約insert（一意制約・23505エラー時スキップ）で防止する。
-function isWithinReminderWindow(at: string, now: Date): boolean {
-  const interviewAt = new Date(at);
-  if (Number.isNaN(interviewAt.getTime())) return false;
-
-  const remainingMs = interviewAt.getTime() - now.getTime();
-  if (remainingMs <= 0) return false;
-
-  const minutes = remainingMs / 60_000;
-  return minutes > 0 && minutes <= 5;
-}
-
 function formatDateTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -83,80 +53,6 @@ function formatDateTime(value: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function collectInterviewCandidates(
-  jobs: Array<{
-    id: string;
-    user_id: string;
-    company_name: string;
-    first_interview_at: string | null;
-    second_interview_at: string | null;
-    final_interview_at: string | null;
-    casual_interview_at: string | null;
-    first_interview_url: string | null;
-    second_interview_url: string | null;
-    final_interview_url: string | null;
-    casual_interview_url: string | null;
-    interview_schedules: InterviewSchedule[] | null;
-  }>,
-  now: Date,
-): InterviewCandidate[] {
-  const candidates: InterviewCandidate[] = [];
-  const legacyStages = new Set<InterviewCandidate["stage"]>([
-    "casual_interview",
-    "first_interview",
-    "second_interview",
-    "final_interview",
-  ]);
-
-  for (const job of jobs) {
-    const schedules = Array.isArray(job.interview_schedules) ? job.interview_schedules : [];
-    const seen = new Set<string>();
-
-    for (const schedule of schedules) {
-      if (!schedule.scheduled_at || !isWithinReminderWindow(schedule.scheduled_at, now)) continue;
-      if (!legacyStages.has(schedule.kind as InterviewCandidate["stage"])) continue;
-
-      const stage = schedule.kind as InterviewCandidate["stage"];
-      const key = `${stage}:${schedule.scheduled_at}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      candidates.push({
-        jobId: job.id,
-        userId: job.user_id,
-        companyName: job.company_name,
-        stage,
-        at: schedule.scheduled_at,
-        interviewUrl: schedule.url ?? null,
-      });
-    }
-
-    const legacyEntries: Array<[InterviewCandidate["stage"], string | null, string | null]> = [
-      ["casual_interview", job.casual_interview_at, job.casual_interview_url],
-      ["first_interview", job.first_interview_at, job.first_interview_url],
-      ["second_interview", job.second_interview_at, job.second_interview_url],
-      ["final_interview", job.final_interview_at, job.final_interview_url],
-    ];
-
-    for (const [stage, at, interviewUrl] of legacyEntries) {
-      if (!at || !isWithinReminderWindow(at, now)) continue;
-      const key = `${stage}:${at}`;
-      if (seen.has(key)) continue;
-
-      candidates.push({
-        jobId: job.id,
-        userId: job.user_id,
-        companyName: job.company_name,
-        stage,
-        at,
-        interviewUrl,
-      });
-    }
-  }
-
-  return candidates;
 }
 
 Deno.serve(async (req: Request) => {
@@ -190,28 +86,29 @@ Deno.serve(async (req: Request) => {
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
   const now = new Date();
-  const nowIso = now.toISOString();
-  const windowEndIso = new Date(now.getTime() + 6 * 60_000).toISOString();
-
-  const { data: jobs, error: jobsError } = await adminClient
-    .from("jobs")
-    .select(
-      "id, user_id, company_name, casual_interview_at, first_interview_at, second_interview_at, final_interview_at, casual_interview_url, first_interview_url, second_interview_url, final_interview_url",
-    )
-    .or(
-      [
-        `and(casual_interview_at.gte.${nowIso},casual_interview_at.lte.${windowEndIso})`,
-        `and(first_interview_at.gte.${nowIso},first_interview_at.lte.${windowEndIso})`,
-        `and(second_interview_at.gte.${nowIso},second_interview_at.lte.${windowEndIso})`,
-        `and(final_interview_at.gte.${nowIso},final_interview_at.lte.${windowEndIso})`,
-      ].join(","),
-    );
+  const windowEnd = new Date(now.getTime() + 5 * 60_000);
+  const { data: candidateRows, error: jobsError } = await adminClient.rpc(
+    "get_interview_reminder_candidates",
+    { window_start: now.toISOString(), window_end: windowEnd.toISOString() },
+  );
 
   if (jobsError) {
     return jsonResponse({ ok: false, error: jobsError.message }, 500);
   }
 
-  const candidates = collectInterviewCandidates(jobs ?? [], now);
+  const candidates: InterviewCandidate[] = (candidateRows ?? []).map((row: {
+    job_id: string; user_id: string; company_name: string; interview_stage: string;
+    schedule_id: string; stage_label: string; interview_at: string; interview_url: string | null;
+  }) => ({
+    jobId: row.job_id,
+    userId: row.user_id,
+    companyName: row.company_name,
+    stage: row.interview_stage,
+    scheduleId: row.schedule_id,
+    stageLabel: row.stage_label,
+    at: row.interview_at,
+    interviewUrl: row.interview_url,
+  }));
   let sentCount = 0;
   const errors: string[] = [];
 
@@ -223,6 +120,7 @@ Deno.serve(async (req: Request) => {
       user_id: candidate.userId,
       job_id: candidate.jobId,
       interview_stage: candidate.stage,
+      schedule_id: candidate.scheduleId,
       interview_at: candidate.at,
     });
 
@@ -240,15 +138,22 @@ Deno.serve(async (req: Request) => {
 
     if (subscriptionsError) {
       errors.push(subscriptionsError.message);
+      const { error: rollbackError } = await adminClient.from("interview_push_sent").delete()
+        .eq("job_id", candidate.jobId).eq("schedule_id", candidate.scheduleId).eq("interview_at", candidate.at);
+      if (rollbackError) errors.push(`予約ロールバック失敗: ${rollbackError.message}`);
       continue;
     }
 
-    if (!subscriptions || subscriptions.length === 0) continue;
+    if (!subscriptions || subscriptions.length === 0) {
+      const { error: rollbackError } = await adminClient.from("interview_push_sent").delete()
+        .eq("job_id", candidate.jobId).eq("schedule_id", candidate.scheduleId).eq("interview_at", candidate.at);
+      if (rollbackError) errors.push(`予約ロールバック失敗: ${rollbackError.message}`);
+      continue;
+    }
 
-    const stageLabel = STAGE_LABELS[candidate.stage] ?? candidate.stage;
     const body = candidate.interviewUrl
-      ? `${candidate.companyName} — ${stageLabel}（${formatDateTime(candidate.at)}）\n入室: ${candidate.interviewUrl}`
-      : `${candidate.companyName} — ${stageLabel}（${formatDateTime(candidate.at)}）`;
+      ? `${candidate.companyName} — ${candidate.stageLabel}（${formatDateTime(candidate.at)}）\n入室: ${candidate.interviewUrl}`
+      : `${candidate.companyName} — ${candidate.stageLabel}（${formatDateTime(candidate.at)}）`;
     const payload = JSON.stringify({
       title: "面接5分前です",
       body,
@@ -291,9 +196,8 @@ Deno.serve(async (req: Request) => {
       const { error: rollbackError } = await adminClient
         .from("interview_push_sent")
         .delete()
-        .eq("user_id", candidate.userId)
         .eq("job_id", candidate.jobId)
-        .eq("interview_stage", candidate.stage)
+        .eq("schedule_id", candidate.scheduleId)
         .eq("interview_at", candidate.at);
 
       if (rollbackError) {

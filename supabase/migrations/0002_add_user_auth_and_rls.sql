@@ -16,6 +16,9 @@ alter table public.jobs
 
 create index if not exists jobs_user_id_idx on public.jobs (user_id);
 
+-- 既存環境でもポリシーが確実に適用されるよう、作成前にRLSを有効化する
+alter table public.jobs enable row level security;
+
 -- 2. 旧・全許可ポリシーを削除（個人利用前提だったため）
 drop policy if exists "Allow all access to jobs" on public.jobs;
 

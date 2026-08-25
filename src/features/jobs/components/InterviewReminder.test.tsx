@@ -19,14 +19,14 @@ vi.mock("@/features/jobs/hooks/use-jobs", () => ({
 const mockedUseAuth = vi.mocked(useAuth);
 const mockedUseJobs = vi.mocked(useJobs);
 
-const NOTIFIED_STORAGE_KEY = "job-tracker-interview-reminders";
-
 const testUser: AuthUser = {
   id: "user-1",
   email: "test@example.com",
   displayName: null,
   createdAt: null,
 };
+
+const NOTIFIED_STORAGE_KEY = `job-tracker-interview-reminders:${testUser.id}`;
 
 /** テスト用の`Job`オブジェクトを生成するファクトリ関数。必要なフィールドのみoverridesで上書きする。 */
 function createTestJob(overrides: Partial<Job> = {}): Job {
@@ -283,5 +283,50 @@ describe("InterviewReminder", () => {
     render(<InterviewReminder />);
 
     expect(mockedUseJobs).toHaveBeenCalledWith("application_date_desc", false);
+  });
+
+  it("ユーザー切替時に旧ユーザーのアラートと既読情報を引き継がない", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    mockJobs([createTestJob({ company_name: "A社", first_interview_at: interviewAt.toISOString() })]);
+
+    const view = render(<InterviewReminder />);
+    expect(screen.getByText(/A社/)).toBeInTheDocument();
+
+    const otherUser = { ...testUser, id: "user-2", email: "other@example.com" };
+    mockedUseAuth.mockReturnValue({ user: otherUser, isLoading: false });
+    mockJobs([
+      createTestJob({
+        id: "job-2",
+        user_id: "user-2",
+        company_name: "B社",
+        first_interview_at: interviewAt.toISOString(),
+      }),
+    ]);
+    view.rerender(<InterviewReminder />);
+
+    expect(screen.queryByText(/A社/)).not.toBeInTheDocument();
+    expect(screen.getByText(/B社/)).toBeInTheDocument();
+    expect(sessionStorage.getItem("job-tracker-interview-reminders:user-2")).not.toBeNull();
+  });
+
+  it("AからBを経てAへ戻っても切替前の期限切れアラートを再表示しない", () => {
+    const interviewAt = new Date("2026-08-20T14:00:00");
+    vi.setSystemTime(new Date(interviewAt.getTime() - 5 * 60_000));
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    mockJobs([createTestJob({ company_name: "A社", first_interview_at: interviewAt.toISOString() })]);
+    const view = render(<InterviewReminder />);
+    expect(screen.getByText(/A社/)).toBeInTheDocument();
+
+    mockedUseAuth.mockReturnValue({ user: { ...testUser, id: "user-2" }, isLoading: false });
+    mockJobs([]);
+    view.rerender(<InterviewReminder />);
+
+    vi.setSystemTime(new Date(interviewAt.getTime() + 60_000));
+    mockedUseAuth.mockReturnValue({ user: testUser, isLoading: false });
+    mockJobs([createTestJob({ company_name: "A社", first_interview_at: interviewAt.toISOString() })]);
+    view.rerender(<InterviewReminder />);
+    expect(screen.queryByText(/A社/)).not.toBeInTheDocument();
   });
 });

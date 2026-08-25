@@ -7,14 +7,11 @@ export type PushSubscriptionInput = {
 };
 
 export async function savePushSubscription(input: PushSubscriptionInput): Promise<void> {
-  const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      endpoint: input.endpoint,
-      p256dh: input.p256dh,
-      auth: input.auth,
-    },
-    { onConflict: "user_id,endpoint" },
-  );
+  const { error } = await supabase.rpc("claim_push_subscription", {
+    subscription_endpoint: input.endpoint,
+    subscription_p256dh: input.p256dh,
+    subscription_auth: input.auth,
+  });
 
   if (error) throw new Error(error.message);
 }

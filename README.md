@@ -230,6 +230,10 @@ Supabase Auth のユーザー本体（`auth.users`）削除には service_role k
 求人登録・編集フォームの「応募先 URL」欄に URL を入力してフォーカスを外す（または横の 🪄 ボタンを押す）と、
 `fetch-job-metadata` がそのページを取得し、空欄の項目にベストエフォートで自動入力します。
 
+SSRF対策として、取得先はSupabase Secret `JOB_METADATA_ALLOWED_HOSTS` で明示したホストだけに制限されます。
+完全一致は `example.com`、サブドメインのみ許可する場合は `*.example.com` とし、複数はカンマ区切りで指定してください。
+未設定時はすべての取得を拒否します。DNS再束縛を避けるため、信頼できる求人媒体のホストだけを登録してください。
+
 - 抽出方法: schema.org `JobPosting` 構造化データ（JSON-LD）→ OGP / `<title>` 等へフォールバック
 - 既に入力済みの項目は上書きしない
 - CORS 回避のため Edge Function 経由でサーバー側から取得

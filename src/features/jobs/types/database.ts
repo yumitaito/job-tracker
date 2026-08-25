@@ -80,6 +80,19 @@ export interface Database {
       interview_push_sent: NotificationsDatabaseTables["interview_push_sent"];
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      claim_push_subscription: {
+        Args: {
+          subscription_endpoint: string;
+          subscription_p256dh: string;
+          subscription_auth: string;
+        };
+        Returns: undefined;
+      };
+      reorder_jobs: {
+        Args: { ordered_ids: string[] };
+        Returns: undefined;
+      };
+    };
   };
 }

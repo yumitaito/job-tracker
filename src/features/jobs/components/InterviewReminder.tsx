@@ -10,11 +10,13 @@ import {
   isFiveMinutesBeforeInterview,
 } from "@/features/jobs/lib/interview";
 import { formatDateTime } from "@/lib/format";
+import type { AuthUser } from "@/features/auth/types/auth";
 
 const CHECK_INTERVAL_MS = 30_000;
-const NOTIFIED_STORAGE_KEY = "job-tracker-interview-reminders";
+const NOTIFIED_STORAGE_KEY_PREFIX = "job-tracker-interview-reminders";
 
 type InterviewReminderAlert = {
+  userId: string;
   key: string;
   companyName: string;
   stageLabel: string;
@@ -22,9 +24,13 @@ type InterviewReminderAlert = {
   url: string | null;
 };
 
-function loadNotifiedKeys(): Set<string> {
+function getStorageKey(userId: string): string {
+  return `${NOTIFIED_STORAGE_KEY_PREFIX}:${userId}`;
+}
+
+function loadNotifiedKeys(userId: string): Set<string> {
   try {
-    const raw = sessionStorage.getItem(NOTIFIED_STORAGE_KEY);
+    const raw = sessionStorage.getItem(getStorageKey(userId));
     if (!raw) return new Set();
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed) ? new Set(parsed.filter((item) => typeof item === "string")) : new Set();
@@ -33,15 +39,14 @@ function loadNotifiedKeys(): Set<string> {
   }
 }
 
-function saveNotifiedKeys(keys: Set<string>) {
-  sessionStorage.setItem(NOTIFIED_STORAGE_KEY, JSON.stringify([...keys]));
+function saveNotifiedKeys(userId: string, keys: Set<string>) {
+  sessionStorage.setItem(getStorageKey(userId), JSON.stringify([...keys]));
 }
 
-export function InterviewReminder() {
-  const { user } = useAuth();
+function InterviewReminderForUser({ user }: { user: AuthUser | null }) {
   const { data: jobs } = useJobs("application_date_desc", !!user);
   const [alerts, setAlerts] = useState<InterviewReminderAlert[]>([]);
-  const notifiedKeysRef = useRef<Set<string>>(loadNotifiedKeys());
+  const notifiedKeysRef = useRef<Set<string>>(user ? loadNotifiedKeys(user.id) : new Set());
 
   useEffect(() => {
     if (!user || !jobs) return;
@@ -59,6 +64,7 @@ export function InterviewReminder() {
 
           notifiedKeysRef.current.add(key);
           nextAlerts.push({
+            userId: user.id,
             key,
             companyName: job.company_name,
             stageLabel: interview.label,
@@ -69,7 +75,7 @@ export function InterviewReminder() {
       }
 
       if (nextAlerts.length > 0) {
-        saveNotifiedKeys(notifiedKeysRef.current);
+        saveNotifiedKeys(user.id, notifiedKeysRef.current);
         setAlerts((current) => [...current, ...nextAlerts]);
       }
     };
@@ -83,14 +89,15 @@ export function InterviewReminder() {
     setAlerts((current) => current.filter((alert) => alert.key !== key));
   };
 
-  if (!user || alerts.length === 0) return null;
+  const visibleAlerts = user ? alerts.filter((alert) => alert.userId === user.id) : [];
+  if (!user || visibleAlerts.length === 0) return null;
 
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-4 z-50 mx-auto flex w-full max-w-lg flex-col gap-2 px-4"
       aria-live="assertive"
     >
-      {alerts.map((alert) => (
+      {visibleAlerts.map((alert) => (
         <Alert
           key={alert.key}
           variant="destructive"
@@ -128,4 +135,10 @@ export function InterviewReminder() {
       ))}
     </div>
   );
+}
+
+export function InterviewReminder() {
+  const { user } = useAuth();
+  // ユーザー変更時に内部state/ref/intervalをまとめて破棄する
+  return <InterviewReminderForUser key={user?.id ?? "guest"} user={user} />;
 }

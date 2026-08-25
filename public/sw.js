@@ -12,7 +12,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: "/favicon.svg",
+      icon: "/favicon.png",
       data: { url: payload.url ?? "/jobs" },
     }),
   );
