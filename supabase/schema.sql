@@ -136,6 +136,12 @@ create table if not exists public.interview_push_sent (
 alter table public.push_subscriptions enable row level security;
 alter table public.interview_push_sent enable row level security;
 
+revoke all on table public.jobs, public.push_subscriptions, public.interview_push_sent from anon;
+grant select, insert, update, delete on table public.jobs, public.push_subscriptions to authenticated;
+revoke all on table public.interview_push_sent from authenticated;
+grant select, insert, update, delete on table public.jobs, public.push_subscriptions,
+  public.interview_push_sent to service_role;
+
 drop policy if exists "Users can view their own push subscriptions" on public.push_subscriptions;
 create policy "Users can view their own push subscriptions"
   on public.push_subscriptions for select

@@ -1,0 +1,13 @@
+{
+  "nodeModulesDir": "none",
+  "compilerOptions": {
+    "lib": ["deno.window", "dom", "dom.iterable"]
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "indentWidth": 2
+  },
+  "test": {
+    "include": ["supabase/functions/**/*.test.ts"]
+  }
+}
